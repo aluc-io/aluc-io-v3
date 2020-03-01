@@ -7,6 +7,36 @@ const supportedLanguages = require('./src/utils/i18n/supportedLanguages');
 const languages = supportedLanguages.map(language => language.languageTag);
 
 const plugins = [
+  {
+    resolve: `gatsby-source-filesystem`,
+    options: {
+      path: `${__dirname}/contents/posts/`,
+      name: 'posts',
+    },
+  },
+  {
+    resolve: `gatsby-transformer-remark`,
+    options: {
+      plugins: [
+        {
+          resolve: `gatsby-remark-images`,
+          options: {
+            maxWidth: 590,
+          },
+        },
+        {
+          resolve: `gatsby-remark-responsive-iframe`,
+          options: {
+            wrapperStyle: `margin-bottom: 1.0725rem`,
+          },
+        },
+        `gatsby-remark-prismjs`,
+        `gatsby-remark-copy-linked-files`,
+        `gatsby-remark-smartypants`,
+      ],
+    },
+  },
+
   'gatsby-plugin-react-helmet',
   'gatsby-transformer-sharp',
   'gatsby-plugin-sharp',
@@ -20,7 +50,7 @@ const plugins = [
       path: `${__dirname}/src/locales`,
       languages,
       defaultLanguage: 'en-us',
-      redirect: true,
+      redirect: false,
     },
   },
   {
