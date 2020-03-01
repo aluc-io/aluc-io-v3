@@ -46,10 +46,6 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'airbnb',
-    // Disable rules that conflict with Prettier
-    // !!! Prettier must be last to override other configs
-    'prettier/react',
-    'plugin:prettier/recommended',
   ],
   rules: {
     // This project uses TS. Disable prop-types check
@@ -58,6 +54,11 @@ module.exports = {
     camelcase: 0,
     // Prevents exclusion of tests from passing lint check
     'no-only-tests/no-only-tests': 'error',
+    'quotes': 'off',
+    'prefer-template': 'off',
+    'arrow-parens': 'off',
+    'object-shorthand': 'off',
+    'space-in-parens': 'off',
   },
 
   // https://eslint.org/docs/user-guide/configuring#report-unused-eslint-disable-comments
@@ -92,11 +93,6 @@ module.exports = {
         // https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/TYPED_LINTING.md
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
         'airbnb-typescript',
-        // Disable rules that conflict with Prettier
-        // !!! Prettier must be last to override other configs
-        'prettier/react',
-        'prettier/@typescript-eslint',
-        'plugin:prettier/recommended',
       ],
       rules: {
         // This project uses TS. Disable prop-types check
@@ -119,6 +115,22 @@ module.exports = {
             ],
           },
         ],
+        '@typescript-eslint/quotes': 'off',
+        '@typescript-eslint/semi': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        'arrow-body-style': 'off',
+        'react/destructuring-assignment': 'off',
+        '@typescript-eslint/comma-spacing': 'off',
+        '@typescript-eslint/member-delimiter-style': 'off',
+        'react/no-danger': 'off',
+        'react/jsx-tag-spacing': 'off',
+        'arrow-parens': 'off',
+        'space-in-parens': 'off',
+        'react/jsx-props-no-spreading': 'off',
+        'no-confusing-arrow': 'off',
+        'operator-linebreak': 'off',
+        'no-nested-ternary': 'off',
+        'no-multi-spaces': 'off',
       },
     },
     // =================================
