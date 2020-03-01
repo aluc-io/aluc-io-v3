@@ -9,7 +9,7 @@ export default {
 };
 
 export const Link = () => (
-  <Button tag="link" to="test" isLoading>
+  <Button tag="link" to="/test" isLoading>
     <FormattedMessage id="auth.login" />
   </Button>
 );

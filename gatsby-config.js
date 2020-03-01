@@ -62,6 +62,10 @@ const plugins = [
           subsets: ['latin'],
           variants: ['400', '700'],
         },
+        {
+          family: 'Nanum Gothic Coding',
+          variants: ['400', '700'],
+        },
       ],
     },
   },

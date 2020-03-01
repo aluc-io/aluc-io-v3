@@ -1,18 +1,18 @@
 import React from 'react';
 import Helmet, { HelmetProps } from 'react-helmet';
-import { injectIntl, InjectedIntlProps } from 'gatsby-plugin-intl';
+import { useIntl } from 'gatsby-plugin-intl';
 import { Location } from '@reach/router';
 
 type Props = {
   /** Description text for the description meta tags */
   description?: string;
-} & HelmetProps &
-  InjectedIntlProps;
+} & HelmetProps;
 
 /**
  * An SEO component that handles all element in the head that can accept
  */
-const SEO: React.FC<Props> = ({ children, description = '', title, intl }) => {
+const SEO: React.FC<Props> = ({ children, description = '', title }) => {
+  const intl = useIntl()
   const metaDescription = description || 'Welcome to my website';
 
   return (
@@ -44,4 +44,4 @@ const SEO: React.FC<Props> = ({ children, description = '', title, intl }) => {
   );
 };
 
-export default injectIntl(SEO);
+export default SEO;
