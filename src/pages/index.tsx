@@ -1,19 +1,10 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/core';
-import {
-  injectIntl,
-  FormattedMessage,
-  InjectedIntlProps,
-} from 'gatsby-plugin-intl';
-
-import { Layout } from '~/components/Layout';
+import { injectIntl, FormattedMessage, InjectedIntlProps } from 'gatsby-plugin-intl';
+import { graphql } from 'gatsby';
 import { SEO } from '~/components/SEO';
-
-import { ReactComponent as GatsbyIcon } from '~/icons/gatsby.svg';
-import { ReactComponent as TypeScriptIcon } from '~/icons/typescript.svg';
-import { ReactComponent as StorybookIcon } from '~/icons/storybook.svg';
-import { ReactComponent as GithubIcon } from '~/icons/github.svg';
+import { Layout } from '~/components/Layout';
 
 const Card = styled.div`
     min-width: 570px;
@@ -24,81 +15,61 @@ const Card = styled.div`
     box-shadow: 2px 4px 12px 3px rgba(249,249,249,0.25);
 }`;
 
-const Container = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #201b21;
-`;
-
-const iconStyles = css`
-  width: 75px;
-`;
-
-const Logo = styled.img`
-  max-width: 75px;
-  margin: 0;
-`;
-
-const Index: React.FC<InjectedIntlProps> = ({ intl }) => {
+const Index: React.FC<InjectedIntlProps & Props> = ({ intl, data }) => {
   return (
     <Layout>
       <SEO title={intl.formatMessage({ id: 'homepage.title' })} />
-      <Container>
-        <Card>
-          <div
-            css={css`
-              display: flex;
-              justify-content: space-around;
-            `}
-          >
-            <GatsbyIcon css={iconStyles} />
-            <TypeScriptIcon
-              css={css`
-                fill: #007acc;
-                ${iconStyles}
-              `}
-            />
-            <Logo src="/logos/emotion.png" />
-            <StorybookIcon
-              css={css`
-                ${iconStyles}
-              `}
-            />
-          </div>
-          <div
-            css={css`
-              padding: 30px 20px 20px;
-            `}
-          >
-            <FormattedMessage id="greeting" />
-          </div>
-          <a
-            href="https://github.com/duncanleung/gatsby-typescript-emotion-storybook"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <GithubIcon
-              css={css`
-                width: 35px;
-                margin-right: auto;
-                margin-left: auto;
-                display: inline-block;
-                fill: black;
-                transition: fill 0.2s ease-in-out;
-
-                &:hover {
-                  fill: #5d71e4;
-                }
-              `}
-            />
-          </a>
-        </Card>
-      </Container>
+      <pre>{JSON.stringify(data,null,2)}</pre>
     </Layout>
   );
 };
 
 export default injectIntl(Index);
+
+interface SimplePost {
+  excerpt: string
+  fields: {
+    slug: string
+    prefix: string[]
+  }
+  frontmatter: {
+    title: string
+    subTitle: string
+    category: string
+    published: boolean
+  }
+}
+interface Props {
+  data: {
+    allMarkdownRemark: {
+      edges: {
+        node: SimplePost
+      }
+    }
+  }
+}
+
+export const pageQuery = graphql`
+  query LayoutQuery {
+    allMarkdownRemark(
+      filter: { fields: { fileRelativePath: { regex: "/posts/.+?/index\\.md/" }}}
+      sort: { fields: [fields___prefix], order: DESC }
+    ) {
+      edges {
+        node {
+          excerpt
+          fields {
+            slug
+            prefix
+          }
+          frontmatter {
+            title
+            subTitle
+            category
+            published
+          }
+        }
+      }
+    }
+  }
+`
