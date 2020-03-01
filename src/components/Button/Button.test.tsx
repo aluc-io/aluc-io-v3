@@ -3,7 +3,7 @@ import { render } from 'test-utils';
 import { rem } from 'polished';
 import theme from '~/theme';
 
-import Button from '../Button';
+import Button from './Button';
 import { spacer } from '~/utils/styles';
 
 describe('<Button />', () => {

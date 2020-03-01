@@ -51,12 +51,7 @@ const interactionColors = {
   },
 };
 
-const createStyles = (
-  theme: Theme,
-  size: Size,
-  color: Color,
-  variant: Variant
-) => {
+const createStyles = ( theme: Theme, size: Size, color: Color, variant: Variant) => {
   return css`
     /* Defaults (size - medium, color - primary, variant - default) */
     position: relative;
@@ -84,46 +79,28 @@ const createStyles = (
       background-color:  ${theme.color.disabled};
     }
 
-    ${above(
-      'sm',
-      css`
-        padding: ${spacer(2)} ${spacer(6)};
-      `
-    )}
+    ${above( 'sm', css` padding: ${spacer(2)} ${spacer(6)}; `)}
 
     /* Size modifiers */
-    ${size === 'small' &&
-      css`
+    ${size === 'small' && css`
         padding: ${spacer()} ${spacer(3)};
         font-size: ${rem('16px')};
 
-        ${above(
-          'sm',
-          css`
-            padding: ${spacer(1.5)} ${spacer(4)};
-          `
-        )}
+        ${above( 'sm', css` padding: ${spacer(1.5)} ${spacer(4)}; `)}
       `}
 
     /* Color modifiers */
-    ${color === 'secondary' &&
-      css`
+    ${color === 'secondary' && css`
         color: #fff;
         background-color: ${theme.color.secondary};
       `}
 
     /* Variant - outline  */
-    ${variant === 'outline' &&
-      css`
-        color: ${color === 'primary'
-          ? theme.color.text.heading
-          : theme.color.secondary};
+    ${variant === 'outline' && css`
+        color: ${color === 'primary' ? theme.color.text.heading : theme.color.secondary};
         background-color: transparent;
         border: 1px solid
-          ${color === 'primary'
-            ? theme.color.text.heading
-            : theme.color.secondary};
-
+          ${color === 'primary' ? theme.color.text.heading : theme.color.secondary};
         &:hover,
         &:active {
           color: #fff;
@@ -151,10 +128,7 @@ const stripStyles = css`
   outline: inherit;
 `;
 
-type GatsbyLinkPropsPartial = PartialBy<
-  Omit<GatsbyLinkProps<object>, 'ref'>,
-  'to'
->;
+type GatsbyLinkPropsPartial = PartialBy< Omit<GatsbyLinkProps<object>, 'ref'>, 'to' >;
 
 const Button: React.FC<GatsbyLinkPropsPartial & Props> = ({
   tag = 'button',
@@ -167,38 +141,23 @@ const Button: React.FC<GatsbyLinkPropsPartial & Props> = ({
   ...props
 }) => {
   const buttonProps = {
-    css: (theme: Theme) =>
-      !stripButtonStyles
-        ? createStyles(theme, size, color, variant)
-        : stripStyles,
+    css: (theme: Theme) => !stripButtonStyles
+      ? createStyles(theme, size, color, variant)
+      : stripStyles,
     ...props,
   };
 
-  if (tag === 'link') {
-    const { to } = buttonProps;
+  const { to } = buttonProps;
 
-    if (!to) {
-      /* eslint-disable-next-line no-console */
-      console.log("Using Button with `tag='link'` requires a `to` prop.");
-    }
-
-    return (
-      <Link to={to || ''} {...buttonProps}>
-        {children}
-      </Link>
-    );
-  }
-
-  if (tag === 'a') {
-    return <a {...buttonProps}>{children}</a>;
+  if (!to) {
+    /* eslint-disable-next-line no-console */
+    console.log("Using Button with `tag='link'` requires a `to` prop.");
   }
 
   return (
-    // eslint-disable-next-line react/button-has-type
-    <button {...buttonProps}>
+    <Link to={to || ''} {...buttonProps}>
       {children}
-      {isLoading && <LoadingSpinner css={loadingStyles} />}
-    </button>
+    </Link>
   );
 };
 

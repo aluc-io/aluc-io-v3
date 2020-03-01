@@ -1,9 +1,20 @@
 import { Theme } from '@theme/styled';
 
-const theme: Theme = {
+export interface DefaultTheme extends Theme {
+  showLayout: boolean
+  customColor: {
+    hover: string
+  }
+}
+
+const theme: DefaultTheme = {
+  showLayout: false,
+  customColor: {
+    hover: 'rgba(0, 0, 0, 0.04)',
+  },
   color: {
-    primary: '#ffcc00',
-    secondary: '#008489',
+    primary: '#008489',
+    secondary: '#00e676',
     tertiary: '#f39b84',
     gray: {
       lightest: '#faf8f5',

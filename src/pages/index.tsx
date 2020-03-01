@@ -5,6 +5,8 @@ import { injectIntl, FormattedMessage, InjectedIntlProps } from 'gatsby-plugin-i
 import { graphql } from 'gatsby';
 import { SEO } from '~/components/SEO';
 import { Layout } from '~/components/Layout';
+import { PostTitleItem } from '~/components/PostTitleItem';
+import { PostTitleItemProps } from '~/components/PostTitleItem/PostTitleItem';
 
 const Card = styled.div`
     min-width: 570px;
@@ -16,35 +18,23 @@ const Card = styled.div`
 }`;
 
 const Index: React.FC<InjectedIntlProps & Props> = ({ intl, data }) => {
+  const PostTitleItemPropsArr = data.allMarkdownRemark.edges.map(o => o.node)
   return (
     <Layout>
       <SEO title={intl.formatMessage({ id: 'homepage.title' })} />
-      <pre>{JSON.stringify(data,null,2)}</pre>
+      {PostTitleItemPropsArr.map( props => <PostTitleItem key={props.fields.slug} {...props}/>)}
     </Layout>
   );
 };
 
 export default injectIntl(Index);
 
-interface SimplePost {
-  excerpt: string
-  fields: {
-    slug: string
-    prefix: string[]
-  }
-  frontmatter: {
-    title: string
-    subTitle: string
-    category: string
-    published: boolean
-  }
-}
 interface Props {
   data: {
     allMarkdownRemark: {
       edges: {
-        node: SimplePost
-      }
+        node: PostTitleItemProps
+      }[]
     }
   }
 }
