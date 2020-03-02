@@ -10,6 +10,13 @@ const plugins = [
   {
     resolve: `gatsby-source-filesystem`,
     options: {
+      path: `${__dirname}/contents/pages`,
+      name: 'pages',
+    },
+  },
+  {
+    resolve: `gatsby-source-filesystem`,
+    options: {
       path: `${__dirname}/contents/posts/`,
       name: 'posts',
     },
