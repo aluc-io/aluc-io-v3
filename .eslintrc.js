@@ -131,6 +131,7 @@ module.exports = {
         'operator-linebreak': 'off',
         'no-nested-ternary': 'off',
         'no-multi-spaces': 'off',
+        'jsx-quotes': 'off',
       },
     },
     // =================================
