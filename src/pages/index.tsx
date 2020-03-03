@@ -1,12 +1,12 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { css } from '@emotion/core';
-import { injectIntl, FormattedMessage, InjectedIntlProps } from 'gatsby-plugin-intl';
+import { useIntl } from 'gatsby-plugin-intl';
 import { graphql } from 'gatsby';
 import { SEO } from '~/components/SEO';
 import { Layout } from '~/components/Layout';
 import { PostTitleItem } from '~/components/PostTitleItem';
 import { PostTitleItemProps } from '~/components/PostTitleItem/PostTitleItem';
+import { Avatar } from '~/components/Avatar';
 
 const Card = styled.div`
     min-width: 570px;
@@ -17,17 +17,19 @@ const Card = styled.div`
     box-shadow: 2px 4px 12px 3px rgba(249,249,249,0.25);
 }`;
 
-const Index: React.FC<InjectedIntlProps & Props> = ({ intl, data }) => {
+const Index: React.FC<Props> = ({ data }) => {
+  const intl = useIntl()
   const PostTitleItemPropsArr = data.allMarkdownRemark.edges.map(o => o.node)
   return (
     <Layout>
+      <Avatar />
       <SEO title={intl.formatMessage({ id: 'homepage.title' })} />
       {PostTitleItemPropsArr.map( props => <PostTitleItem key={props.fields.slug} {...props}/>)}
     </Layout>
   );
 };
 
-export default injectIntl(Index);
+export default Index;
 
 interface Props {
   data: {

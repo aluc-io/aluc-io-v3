@@ -30,9 +30,6 @@ const PostTemplate: FC<PropsPost> = (props) => {
   const { html } = post
   return (
     <div>
-      <pre>
-        {JSON.stringify(props.data,null,2)}
-      </pre>
       <div dangerouslySetInnerHTML={{ __html: html }}/>
     </div>
   )
