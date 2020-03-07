@@ -25,7 +25,11 @@ export type PostTitleItemProps = {
 }
 
 const styleMain = () => `
-  width: 320px;
+  width: 160px;
+  height: 170px;
+  border-radius: 50%;
+  background-color: #A6C1B0;
+  overflow: hidden;
 `
 const styleImg = () => `
   width: 320px;
