@@ -44,7 +44,10 @@ interface Props {
 export const pageQuery = graphql`
   query LayoutQuery {
     allMarkdownRemark(
-      filter: { fields: { fileRelativePath: { regex: "/posts/.+?/index\\.md/" }}}
+      filter: {
+        fields: { fileRelativePath: { regex: "/posts/.+?/index\\.md/" }}
+        frontmatter: { published: { eq: true }}
+      }
       sort: { fields: [fields___prefix], order: DESC }
     ) {
       edges {
