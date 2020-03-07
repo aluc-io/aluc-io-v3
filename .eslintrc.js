@@ -59,6 +59,7 @@ module.exports = {
     'arrow-parens': 'off',
     'object-shorthand': 'off',
     'space-in-parens': 'off',
+    'semi': 'off',
   },
 
   // https://eslint.org/docs/user-guide/configuring#report-unused-eslint-disable-comments
@@ -132,6 +133,9 @@ module.exports = {
         'no-nested-ternary': 'off',
         'no-multi-spaces': 'off',
         'jsx-quotes': 'off',
+        'import/no-extraneous-dependencies': 'off',
+        'no-new': 'off',
+        'object-shorthand': 'off',
       },
     },
     // =================================
