@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>gitlabci-vs-circleci</title>
+    <meta charset="utf-8">
+    <meta property="og:url" content=""/>
+    <meta property="og:title" content="gitlabci-vs-circleci" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="gitlabci vs circleci" />
+    <link href="./css/Lato-Nanum-Gothic.css" rel="stylesheet">
+    <link href="./css/Yanone-Kaffeesatz.css" rel="stylesheet">
+    <link href="./css/Droid-Serif-400-700-400italic.css" rel="stylesheet">
+    <link href="./css/Ubuntu-Mono-400-700-400italic.css" rel="stylesheet">
+    <link href="./css/notosanskr.css" rel="stylesheet">
+    <link href="./css/user.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <textarea id="source">
+
+layout: false
+
+class: page-10
+
+## GitLab 고인물 유저가 설명하는 디테일 비교,
+### GitLabCI vs. CircleCI
+
+.logo-wrapper.right.right-bottom.list-unstyled[
+- alfreduc
+- https://aluc.io/
+- Wed Jan 29 2020
+]
+
+---
+
+class: gvsc-page, hljs-font-size-22
+
+# Who am I
+
+.flexBox[
+.half-left[
+```yml
+- name:
+    ko: 유 병화
+    en: Alfred UC You
+- job:
+    - Cloud Native 앱 설계, 개발, 운영에 관심 많은
+    - SW Engineer
+- I like ${ }
+    - MacOS > Ubuntu >>> Windows
+    - Stateless > Stateful
+    - Serverless > Container >>> Others
+    - IaS >>> Web Console
+    - React >> Vue > Angular
+    - typescript >> javascript
+    - Slack > Mattermost
+    - VS Code > InterlliJ > Vim >>> Eclipse
+    - gitlab <> github
+    - CircleCI > GitLabCI > Jenkins
+    - Automatic Car > Manual Car
+```
+]
+
+.half-right-profile[
+.img-box[.img-profile[![](./img/1566283512570-7-2.jpg)]]]
+]
+
+---
+
+class: gvsc-page
+
+# TOC
+
+.flexBox[
+.half-left[
+- Public information on the internet
+- Basic information
+- Architecture
+- VM or Physical Server Management
+- Available Executor
+- Entry configure file
+- Configure file management
+- Configure file - Auto completion by scheme
+- Configure file - lint
+]
+.half-right[
+- Hello world
+- Docker image
+- Multiple jobs
+- Cache
+- Artifacts
+- Share Data Among Jobs
+- Unit test result
+- Linked project
+- Permission
+- Environments variables
+- Debugging
+- Yaml anchors
+- Web UI
+- Conclusion
+- References
+]
+]
+
+---
+
+class: gvsc-page
+
+# Public information on the internet
+
+- Google trend: https://trends.google.com/trends/explore?q=gitlab%20ci,circleci
+
+- Stackshare: https://stackshare.io/stackups/circleci-vs-gitlab-ci-vs-gitlab
+
+- CircleCI's GitLabCI to CircleCI Migration:
+    - https://circleci.com/docs/2.0/migrating-from-gitlab/
+
+- GitLab's CircleCI vs. GitLab
+    - https://about.gitlab.com/devops-tools/circle-ci-vs-gitlab.html
+
+.think[
+- 인터넷에서 확인할 수 있는 두 솔루션의 비교 정보 입니다
+]
+
+---
+
+class: gvsc-page
+
+# Basic information
+
+.flexBox[
+.half-left[
+## GitLabCI
+- https://gitlab.com/gitlab-org/gitlab
+- https://gitlab.com/gitlab-org/gitlab-runner
+- SaaS and Enterprise, Self-Managed
+- 2011: Start of GitLab
+- 2012년 11월 November first version of GitLab CI
+- Recent Big Breaking Change: 2015년 9월 22일 GitLab 8.0 부터 GitLab 프로젝트와 통합
+- 슬라이드 작성 당시 GitLab 버전: [12.7](https://about.gitlab.com/releases/2020/01/22/gitlab-12-7-released/)
+]
+
+.half-right[
+## CircleCI
+- https://circleci.com/
+- Support github, github enterprise, bitbucket
+- Saas and Enterprise
+- 2016년 5월 12일 0.2.36 release
+- Recent Big Breaking Change: 2017년 9월 6일 2.0 버전 release
+- 슬라이드 작성 당시 버전: [2.18.03](https://circleci.com/server/changelog/#2-18-03)
+]
+]
+
+.think[
+- GitLbCI와 CircleCI를 소개합니다. 앞으로의 슬라이드에서,
+- .icon-gitlab[![](./img/logo-gitlab.png)] <- 이 아이콘은 제가 생각하는 GitLabCI의 장점이며,
+- .icon-circleci[![](./img/logo-circleci.png)] <- 이 아이콘은 제가 생각하는 CircleCI의 장점입니다.
+- 기술적 선호에 따른 개인적인 의견일 뿐 두 기술의 우열을 따지고자 하는 것은 아니니 참고로만 봐주시기 바랍니다.
+- 우하단 페이지 표시 옆에 ⬇️ 아이콘이 있으면 스크롤을 하여 추가 내용을 볼 수 있습니다.
+]
+---
+
+class: gvsc-page
+
+# Architecture
+
+.flexBox[
+.half-left[
+.center[![](./img/ci-cd-architecture_2x.png)]
+]
+
+.half-right[
+.center[![](./img/ccie_arch.png)]
+]
+]
+
+.think-relative[
+- GitLabCI는 polling 방식, CircleCI는 webhook 방식으로 동작합니다.
+- .icon-gitlab[![](./img/logo-gitlab.png)]Polling 방식 덕분에 실제 빌드가 수행되는 환경인 gitlab-runner를 어디서든 쉽게 구동 시킬 수 있습니다.
+]
+
+---
+
+class: gvsc-page, scroll
+
+# VM or Physical Server Management
+
+.flexBox[
+.half-left[
+## GitLabCI
+- Shared Runners: Managed by system admin
+- Group Runners, Specific Runners: Self-hosted
+- Self-hosted 방식을 사용하면,
+    - gitlab-runner가 구동되는 VM이나 물리머신을 관리해야함.
+    - DinD, DooD, private registry 기능을 컨트롤 할 수 있음.
+]
+
+.half-right[
+## CircleCI
+- GitHub, CircleCI 모두 system admin 이 담당.
+- 개발자가 Self-hosted로 관리할 수 있는 VM이나 물리머신이 없음.
+]
+]
+
+.think[
+- GitLabCI는 Self-hosted 빌드서버(gitlab-runner) 사용이 가능하지만 CircleCI는 SaaS형태로만 제공됩니다.
+- 슬라이드에서는 서버 개발자로서 GitLabCI Self-hosted runner 사용 경험을 기준으로 비교합니다.
+- .icon-gitlab[![](./img/logo-gitlab.png)]Self-hosted 머신 사용은 커스터마이징이 가능하여 뭐든지 할 수 있지만,
+- .icon-circleci[![](./img/logo-circleci.png)]빌드 환경 운영팀이 아닌 일반 개발자(사용자)가 gitlab-runner를 체계적으로 잘 관리해보고 싶은 유혹에 빠질 수 있습니다.
+- .icon-circleci[![](./img/logo-circleci.png)]GitLabCI 구성 파일에 `tags` 프로퍼티를 사용하여 러너를 선택 하는데, 사용자가 gitlab-runner의 구성까지 알아야합니다.
+]
+.space-height-400[]
+.img-big[![](./img/gitlab-ci-tags.png)]
+
+
+---
+
+class: gvsc-page
+
+# Available Executor
+
+.flexBox[
+.half-left[
+## GitLabCI
+- Shell (Bash / Windows Batch / PowerShell)
+- Parallels / VirtualBox (Windows, Linux, macOS or FreeBSD)
+- Docker
+- Docker Machine (auto-scaling)
+- Kubernetes
+- SSH
+- Custom
+]
+
+.half-right[
+## CircleCI
+- Within Docker images (docker)
+- Within a Linux virtual machine (VM) image (machine)
+- Within a macOS VM image (macos)
+- Within a windows VM image (windows)
+]
+]
+
+.think[
+- 공통적으로 docker, shell(machine) executor를 지원하지만,
+- .icon-gitlab[![](./img/logo-gitlab.png)]GitLabCI가 FreeBSD, Kubernetes, Custom executor 등 더 많은 환경을 지원합니다.
+]
+
+---
+
+class: gvsc-page
+
+# Entry configure file
+
+.flexBox[
+.half-left[
+## [GitLabCI](https://docs.gitlab.com/ee/ci/yaml/)
+- Default: `<projectRoot>/.gitlab-ci.yml`
+- [Custom CI configuration path](https://docs.gitlab.com/ee/user/project/pipelines/settings.html#custom-ci-configuration-path)
+.space-height-20[]
+.img-border[![](./img/custom-ci-configuration-path.png)]
+]
+
+.half-right[
+## [CircleCI](https://circleci.com/docs/2.0/configuration-reference/)
+- `<projectRoot>/.circleci/config.yml`
+]
+]
+
+.think[
+- 모두 yml 구성 파일을 사용하며, GitLabCI는 셋팅을 통해 로컬파일, 같은 GitLab내 다른 저장소의 파일, 원격의 yml 파일을 사용 할 수 있는데,
+- .icon-gitlab[![](./img/logo-gitlab.png)] 예를들어 개발의 롤과 **릴리스 엔지니어링**의 롤이 서로 다른 팀에게 부여되는 엔터프라이즈 환경에서 유용한 기능입니다.
+]
+
+
+---
+
+class: gvsc-page
+
+# Configure file - Auto completion by scheme
+
+.flexBox-2-1[
+.half-left[
+.img-big-90p[![](./img/auto-complete.png)]
+]
+
+.half-right[
+- VS Code - YAML extension
+- http://schemastore.org/json/
+]
+]
+
+.footnote[.text[두 솔루션 모두 VS Code등의 에디터를 통해 컨피그 파일 작성시 자동완성, 밸리데이션 체크를 할 수 있습니다]]
+
+---
+
+class: gvsc-page, scroll
+
+# Configure file - lint
+
+.flexBox[
+.half-left[
+## GitLabCI
+
+```yml
+https://gitlab.com/<namespace>/<projectName>/-/ci/lint
+```
+
+```yml
+https://gitlab.com/help/api/lint.md
+```
+]
+
+.half-right[
+## CircleCI
+
+```yml
+$ brew install circleci
+$ circleci config validate
+Config file at .circleci/config.yml is valid.
+```
+
+```yml
+$ circleci config validate
+Error: ERROR IN CONFIG FILE:
+[#] required key [jobs] not found
+```
+]
+]
+
+.think-relative[
+.img-big[![](./img/ci-lint-button.png)]
+.img-big[![](./img/ci-lint-result.png)]
+.img-big[![](./img/error-circleci.png)]
+]
+
+.footnote[.text[GitLabCI는 WebUI와 API를 통해 구성파일 lint를 제공하고 CircleCI는 CLI 명령어를 통해 할 수 있습니다]]
+
+---
+
+class: gvsc-page, hljs-font-size-26
+
+# Hello world
+
+.flexBox[
+.half-left[
+## GitLabCI
+
+```yml
+some-job-name:
+  script: echo "Hello world"
+```
+]
+
+.half-right[
+## CircleCI
+
+```yml
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.7.0
+    steps:
+      - checkout
+      - run: echo "Hello world"
+```
+]
+]
+
+.think[
+- 빌드의 실행 단위는 모두 job 이라는 용어를 사용합니다.
+- .icon-circleci[![](./img/logo-circleci.png)]CircleCI에서는 사용할 도커 이미지와 버전을 명시해야하고, 저장소의 형상을 가져오는 것도 `checkout` step으로 명시해야 합니다.
+- 반면 GitLab은 **기본동작**으로 저장소의 형상을 가져오고, 도커 이미지를 명시하지 않아도 default 이미지를 사용합니다.
+]
+
+
+---
+
+class: gvsc-page, hljs-font-size-26
+
+# Docker image
+
+.flexBox[
+.half-left[
+## GitLabCI
+
+```yml
+some-job-name:
+  image: ruby:2.7.0
+* script: echo "Hello world"
+```
+
+또는
+
+```yml
+*image: ruby:2.7.0
+
+some-job-name:
+  script: echo "Hello world"
+```
+]
+
+.half-right[
+## CircleCI
+
+```yml
+version: 2
+jobs:
+  build:
+    docker:
+*     - image: circleci/ruby:2.7.0
+    steps:
+      - checkout
+      - run: echo "Hello world"
+```
+
+]
+]
+
+- GitLabCI에서는 모든 job에 적용되는 전역 Docker image 설정을 할 수 있습니다.
+- CircleCI는 [Pre-Built CircleCI Docker Images](https://circleci.com/docs/2.0/circleci-images/) 제공 및 사용을 권장합니다.
+
+---
+
+class: gvsc-page
+
+# Docker image from private registry
+
+.flexBox[
+.half-left[
+## GitLabCI
+- [GitLab Container Registry](https://docs.gitlab.com/ee/user/packages/container_registry/)를 지원합니다.
+- 하지만 외부의 private registry의 도커 이미지를 사용하려면,
+  [amazon-ecr-credential-helper](https://github.com/awslabs/amazon-ecr-credential-helper) 프로젝트 등의 도움을 받아
+  yml 빌드 구성 파일이 아닌 [gitlab-runner](https://docs.gitlab.com/ee/ci/docker/using_docker_images.html#define-an-image-from-a-private-container-registry)에
+  직접 설정 해야 합니다.
+]
+.half-right[
+## CircleCI
+
+```yml
+docker:
+  - image: "docker.rt.ourenterprise.net/ci-build:1.0.0"
+    auth:
+      username: $DOCKER_AUTH_USERNAME
+      password: $DOCKER_AUTH_PASSWORD
+```
+
+```yml
+docker:
+  - image: "550000000022.dkr.ecr.eu-west-2.amazonaws.com/ci-build:0.4.1"
+    aws_auth:
+      aws_access_key_id: $AWS_ACCESS_KEY_ID
+      aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
+```
+]
+]
+
+.think[
+- .icon-circleci[![](./img/logo-circleci.png)]CircleCI는 컨피그 파일에 auth 정보만 추가하면 **private registry**에 있는 도커 이미지를 사용할 수 있습니다.
+- ID/Password 방식과 AWS Credential을 통한 AWS ECR(Elastic Container Registry)을 지원합니다.
+]
+
+---
+
+class: gvsc-page, scroll, hljs-font-size-22
+
+# Multiple jobs
+
+.center[![](./img/stage.png)]
+
+.flexBox[
+.half-left[
+## GitLabCI
+
+```yml
+job1:
+  stage: build
+  script: make build dependencies
+
+job2:
+  stage: build
+  script: make build artifacts
+
+job3:
+  stage: test
+  script: make test
+
+job4:
+  stage: deploy
+  script: upload deploy
+
+stages:
+  - build
+  - test
+  - deploy
+
+```
+]
+
+.half-right[
+## CircleCI
+
+```yml
+version: 2
+jobs:
+  job1:
+    steps:
+      - checkout
+      - run: make build dependencies
+  job2:
+    steps:
+      - checkout
+      - run: make build artifacts
+  job3:
+    steps:
+      - checkout
+      - run: make test
+  job4:
+    steps:
+      - run: upload deploy
+
+workflows:
+  version: 2
+  workflow1:
+    - job1
+    - job2
+    - job3:
+        requires:
+          - job1
+          - job2
+    - job4:
+        requires:
+          - job3
+```
+]
+]
+
+- GitLabCI는 **job 구성 안에 이 job이 어떤 stage에 속하는지 명시**하므로 파이프라인 전체 모양을 알기 위해선 모든 job들을 확인해야하고,
+- .icon-circleci[![](./img/logo-circleci.png)]CircleCI는 workflow(pipeline)가 어떤 job들로 구성되는지 별도로 정의하기 때문에 한눈에 전체 모양을 파악하기 좋습니다.
+- .icon-circleci[![](./img/logo-circleci.png)]또한 여러개의 workflow를 정의 할 수 있습니다.
+
+---
+
+class: gvsc-page, hljs-font-size-22
+
+# Cache
+
+.img-big-70p-center[![](./img/Diagram-v3-Cache.png)]
+
+- 캐시는 매 파이프라인에서 반복 작업을 효율화하기 위해 사용됩니다.
+- 예를들어 `npm install`, `bundle install`, `pip install` 같이 인터넷으로부터 의존성을 내려받는 작업에 사용됩니다.
+
+---
+
+class: gvsc-page, hljs-font-size-22
+
+# Cache
+
+.flexBox[
+.half-left[
+## GitLabCI
+
+```yml
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+  policy: pull-push
+
+test_async:
+  script:
+    - yarn install
+    - yarn test
+```
+]
+
+.half-right[
+## CircleCI
+
+```yml
+steps:
+  - checkout
+  - restore_cache:
+      key: v1-node-modules-{{ checksum "yarn.lock" }}
+  - run: yarn install
+  - save_cache:
+      key: v1-node-modules-{{ checksum "yarn.lock" }}
+      paths:
+        - node_modules
+  - run: yarn test
+```
+]
+]
+
+.think[
+- GitLabCI에서는 `cache` 키워드를 추가해서 job 실행 시작과 끝에 캐시를 로드하고 저장합니다. 이 기본 동작을 컨트롤 할 수 없습니다.
+- .icon-circleci[![](./img/logo-circleci.png)]CircleCI에서는 `restore_cache`, `save_cache`를 언제든 사용 할 수 있고, 캐시 키를 생성할 때 파일의 `checksum` 값을 사용할 수 있습니다.
+]
+
+---
+
+class: gvsc-page
+
+# Artifacts
+
+.img-big-70p-center[![](./img/Diagram-v3-Artifact.png)]
+
+- 각 job의 산출물(artifacts)을 업로드 한 뒤 이후에 WebUI나 API를 통해 다운받을 수 있습니다.
+- 주로 나중에 참고할 용도의 테스트 결과나 빌드 산출물을 저장하는데 사용됩니다.
+
+---
+
+class: gvsc-page
+
+# Artifacts
+
+.flexBox[
+.half-left[
+## [GitLabCI](https://docs.gitlab.com/ee/ci/yaml/#artifacts)
+
+```yml
+build:
+  stage: build
+  script: |
+    echo "my artifact file" > /tmp/artifact-1;
+    mkdir /tmp/artifacts;
+    echo "my artifact files in a dir" > /tmp/artifacts/artifact-2;
+
+  artifacts:
+    expire_in: 90 day
+    when: always
+    paths:
+      - /tmp/artifact-1
+      - /tmp/artifacts/
+```
+]
+
+.half-right[
+## [CircleCI](https://circleci.com/docs/2.0/configuration-reference/#store_artifacts)
+
+```yml
+steps:
+  - run: ...
+  - run:
+      name: Creating Dummy Artifacts
+      command: |
+        echo "my artifact file" > /tmp/artifact-1;
+        mkdir /tmp/artifacts;
+        echo "my artifact files in a dir" > /tmp/artifacts/artifact-2;
+      when: always
+  - store_artifacts:
+      path: /tmp/artifact-1
+      destination: artifact-file
+  - store_artifacts:
+      path: /tmp/artifacts
+```
+]
+]
+
+- GitLabCI에서는 `artifacts` 설정을 추가하면 job실행 종료 전 조건에 만족할 경우 업로드 합니다.
+- .icon-circleci[![](./img/logo-circleci.png)]GitLabCI에서는 사용자가 보관 기일을 명시하지만 CircleCI에서는 admin이 관리합니다.
+- GitLabCI에서는 다음 job으로 데이터를 전달할 때도 artifacts를 사용합니다.
+- .icon-circleci[![](./img/logo-circleci.png)]CircleCI에서는 store_artifacts를 원할 때 사용 할 수 있습니다.
+- TIP: CircleCI에서는 artifact 업로드시 각각의 파일 그대로 업로드 하기 때문에 파일이 많을 경우 tar 혹은 zip 후 올리는게 빠릅니다.
+
+---
+
+class: gvsc-page
+
+# Share data among jobs
+
+.img-big-70p-center[![](./img/Diagram-v3-Workspaces.png)]
+
+- job은 항상 클린한 환경에서 실행되므로 기본적으로 이전 job에서 생성한 파일들은 다음 job에서 접근할 수 없습니다.
+- 라고 생각했지만 "어? GitLabCI에서는 이전 job에서 만든 파일이 있는데요?" 가 발생합니다. 그 이유는,
+
+---
+
+class: gvsc-page
+
+# Share data among jobs
+
+.flexBox[
+.half-left[
+## GitLabCI
+- Artifacts를 사용합니다. 기본동작으로 이전 stage job에서 업로드 해둔 artfacts들을 job실행 전 모두 내려받습니다.
+- [dependencies](https://docs.gitlab.com/ee/ci/yaml/README.html#dependencies)를 명시해서 default 동작을 제어 할 수 있습니다.
+
+```yml
+test:linux:
+  stage: test
+  script: make test:linux
+  dependencies:
+    - build:linux
+
+  # 또는
+  # dependencies: []
+```
+
+- 어 잘 되네? - 문서를 보지 않고 넘어감 - 나중에 코드가 복잡해 졌을때 안되는 상황이 발생되는데 원인 파악이 힘듬.
+]
+
+.half-right[
+## [CircleCI](https://circleci.com/docs/2.0/configuration-reference/#persist_to_workspace)
+- by `persist_to_workspace`, `attach_workspace` in steps.
+
+```yml
+- steps:
+    - persist_to_workspace:
+        root: /tmp/workspace
+        paths:
+          - target/application.jar
+          - build/*
+```
+
+```yml
+- steps:
+    - attach_workspace:
+        at: /tmp/workspace
+```
+
+- 왜 이게 안되지? - 문서를 보고 셋팅해서 빠뜨린 부분을 파악하고 추가하여 되게함 - 이 때의 경험으로 나중에 복잡한 상황에서도 문제 해결이 수월.
+]
+
+]
+
+- .icon-circleci[![](./img/logo-circleci.png)]여러 job간의 데이터 공유 부분도 GitLabCI는 기본동작에 의해 암묵적으로 수행되는 부분이 있습니다. **왜 이게 되지?** vs **왜 이게 안되지?**
+
+---
+
+class: gvsc-page
+
+# Unit test result
+
+.flexBox[
+.half-left[
+## GitLabCI
+- [Coverage 정보 파싱을 위한 정규식](https://docs.gitlab.com/ee/ci/yaml/#coverage)을 제공하면 coverage % 를 표시해주는 badge url을 얻을 수 있습니다.
+![](./img/pipelines_settings_test_coverage.png)
+
+![](./img/pipelines_test_coverage_mr_widget.png)
+![](./img/pipelines_settings_badges_edit.png)
+]
+
+.half-right[
+## CircleCI
+- [store_test_results 속성](https://circleci.com/docs/2.0/configuration-reference/#store_test_results)을 추가하면 WebUI를 통해 Unit test summary를 확인 할 수 있습니다.
+
+![](./img/test-results.png)
+]
+]
+
+- .icon-gitlab[![](./img/logo-gitlab.png)]CircleCI에서 coverage % 뱃지를 사용하기 위해서는 https://coveralls.io/ 같은 별도의 SaaS를 사용해야합니다.
+
+---
+
+class: gvsc-page
+
+# Linked project
+
+.flexBox[
+.half-left[
+## GitLabCI
+- CircleCI에서 사용하는 방법을 똑같이 사용 할 수 있고,
+- 더 쉽게는 구성 파일에 `trigger` 키워드를 사용해서 [다른 프로젝트의 파이프라인](https://docs.gitlab.com/ee/ci/multi_project_pipelines.html)을 트리거 할 수 있습니다.
+![](./img/multi_project_pipeline_graph.png)
+- [Cross-project Pipeline Triggering and Visualization](https://docs.google.com/presentation/d/1AVYo0HqTrwG59G2a55YzQhbXX2EKIsxQ-9P7-g_2bQc/edit#slide=id.g5719884475_0_26)
+]
+
+.half-right[
+## CircleCI
+- API를 사용해서 연결된 프로젝트의 빌드를 Trigger시킬 수 있습니다.
+- Trigger 되면 다른 프로젝트의 Artifacts를 내려 받거나 Deploy Key를 사용해 clone 받아 사용하며,
+  git submodule을 사용 하는 방법도 있습니다.
+]
+]
+
+.think[
+- 다중 프로젝트 파이프 라인은 프로젝트 간 상호 종속성이 필요한 제품을 개발할 때 유용합니다.
+- .icon-gitlab[![](./img/logo-gitlab.png)]GitLabCI에서는 컨피그 파일 수정만으로 편리하게 다중 프로젝트 파이프라인을 구성할 수 있고 Pipeline UI도 제공됩니다.
+]
+
+---
+
+class: gvsc-page
+
+# Permission
+
+.flexBox[
+.half-left[
+## GitLabCI
+- 빌드 수행 환경에서의 접근 권한 변화가 있었습니다. 8.12 버전부터 빌드를 trigger한 유저의 권한을 상속받는 [New CI job permissions model](https://docs.gitlab.com/ee/user/project/new_ci_build_permissions_model.html#new-ci-job-permissions-model)을 사용합니다.
+- [Protected variables](https://docs.gitlab.com/ee/ci/variables/#protected-environment-variables)은 protected branch, protected tags 빌드시에만 주입되며,
+- [Protected runners](https://docs.gitlab.com/ee/ci/runners/#protected-runners)는 protected branch와 protected tags의 빌드만 수행 할 수 있습니다.
+- [GitLab Permissions 참고](https://docs.gitlab.com/ee/user/permissions.html)
+]
+
+.half-right[
+## CircleCI
+- Github의 permission을 따라갑니다.
+- read, write, admin 권한이 있습니다.
+- read 권한으로는 빌드 로그등을 조회할 수 있지만, 빌드를 트리거 시키거나 retry를 하려면 write 이상의 권한이 필요합니다.
+]
+]
+
+.think[
+- GitLab이 더 많은 옵션을 제공하며 그 만큼 복잡합니다. Protected 설정은 팀내 잘 공유가 되면 좋습니다.
+- GitLab은 Enterprise 환경에 최적화된 모습이고 GitHub은 오픈소스 프로젝트에 최적화된 느낌입니다.
+- 하지만 둘다 범용적인 서비스인 만큼 일반적인 상황에서는 두 솔루션 모두 큰 문제는 없습니다.
+]
+
+---
+
+class: gvsc-page, scroll
+
+# Predefined Environment variables
+
+- 두 솔루션 모두 Build시 참조할 수 있는 환경변수들을 제공합니다.
+- GitLabCI에서는 Group-level Variables, CircleCI에서는 Context로 여러 프로젝트에서 사용할 수 있는 환경변수를 셋팅 할 수 있습니다.
+- .icon-circleci[![](./img/logo-circleci.png)]CircleCI는 `Built-in` 환경변수와 Build Setting에서 유저가 제공한 환경변수를 `Spin up Environment` step에서 로그로 보여줍니다.
+  (유저가 제공한 환경변수는 기본적으로 Masking 처리됨)
+
+.img-big[![](./img/spin-up-environment.png)]
+
+---
+
+class: gvsc-page, scroll
+
+# Environment variables
+
+.flexBox[
+.half-left[
+## GitLabCI
+- 전역 또는 job 범위의 환경변수 셋팅을 지원합니다.
+
+```yml
+variables:
+  DATABASE_URL: "postgres://postgres@postgres/my_database"
+```
+
+```yml
+job_name:
+  variables:
+    DATABASE_URL: "postgres://postgres@postgres/my_database"
+```
+]
+
+.half-right[
+## CircleCI
+- job 또는 step 범위의 환경변수 셋팅을 지원합니다.
+
+```yml
+jobs:
+  build:
+    docker:
+      - image: buildpack-deps:trusty
+    environment:
+      TEST_DATABASE_URL: postgresql://ubuntu@localhost/circle_test
+```
+
+```
+    steps:
+      - checkout
+      - run:
+          name: Run migrations
+          command: sql/docker-entrypoint.sh sql
+          environment:
+            DATABASE_URL: postgres://conductor:@localhost:5432/test
+```
+]
+]
+
+---
+
+class: gvsc-page, scroll
+
+# Environment variables on runtime
+
+- GitLabCI에서의 환경변수는 script 실행 내내 공유되지만,
+- CircleCI에서는 매 step이 새로운 쉘 실행 환경이므로 step간 환경변수 공유가 되지 않습니다. 공유를 위해 [BASH_ENV](https://circleci.com/docs/2.0/env-vars/#using-bash_env-to-set-environment-variables)를 사용합니다.
+- .icon-circleci[![](./img/logo-circleci.png)]처음엔 GitLab방식이 편리했으나 스크립트가 복잡해지고 블록화 됨에 따라 CircleCI의 방식이 사이드 이펙 없고 더 좋았습니다.
+- 아래는 환경변수로 두개의 AWS Credential을 셋팅하여 사용하는 예시입니다.
+
+.flexBox[
+.half-left[
+## GitLabCI
+```yml
+.deploy: &deploy
+  script:
+    - node scriptA.js
+    - TMP_ACCESS=$AWS_ACCESS_KEY_ID
+    - TMP_SECERT=$AWS_SECRET_ACCESS_KEY
+
+    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_FOR_BINARY
+    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_FOR_BINARY
+    - time aws s3 cp $BINARY_S3PATH tmp.tar.gz
+
+    - export AWS_ACCESS_KEY_ID=$TMP_ACCESS
+    - export AWS_SECRET_ACCESS_KEY=$TMP_SECERT
+    - node scriptB.js
+```
+```
+deploy_dev:
+  <<: *deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $ACCESS_KEY_DEV
+    AWS_SECRET_ACCESS_KEY: $SECRET_KEY_DEV
+
+deploy_stg:
+  <<: *deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $ACCESS_KEY_STG
+    AWS_SECRET_ACCESS_KEY: $SECRET_KEY_STG
+```
+]
+
+.half-right[
+## CircleCI
+```yml
+jobs:
+  deploy_dev:
+    environment:
+      AWS_ACCESS_KEY_ID: $ACCESS_KEY_DEV
+      AWS_SECRET_ACCESS_KEY: $SECRET_KEY_DEV
+    steps:
+      - run: &run-a node scriptA.js
+      - run: &run-b
+          name: run B
+          environment:
+            AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_FOR_BINARY
+            AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_FOR_BINARY
+          command: time aws s3 cp $BINARY_S3PATH tmp.tar.gz
+      - run: &run-c node scriptB.js
+
+  deploy_stg:
+    environment:
+      AWS_ACCESS_KEY_ID: $ACCESS_KEY_STG
+      AWS_SECRET_ACCESS_KEY: $SECRET_KEY_STG
+    steps:
+      - run: *run-a
+      - run: *run-b
+      - run: *run-c
+```
+]
+]
+
+---
+
+class: gvsc-page, scroll
+
+# Yaml anchors
+
+.flexBox[
+.half-left[
+## GitLabCI
+- Anchors 사용을 위한 [Hidden keys](https://docs.gitlab.com/ee/ci/yaml/#hidden-keys-jobs) 설정을 제공합니다.
+
+```yml
+.download_binary: &download_binary
+  - time aws s3 cp $BINARY_PATH tmp.tar.gz --only-show-errors
+  - tar xvf tmp.tar.gz -C ./asset && rm tmp.tar.gz
+
+.base_image: &base_image node:10.17.0
+
+deploy:
+  image: *base_image
+    script:
+      - *download_binary
+      - *serverless_deploy
+      - *check_deploy
+```
+
+- `script`의 값 타입이 `string` 또는 `string[]` 였기 때문에 anchors 설정이 불편했으나 [GitLabCI 12.5 버전부터 `(string | string[])[]` 타입을 허용](https://docs.gitlab.com/ee/ci/yaml/#yaml-anchors-for-script)합니다.
+- GitLabCI에서는 script 실행 내내 환경변수가 공유되므로 script 에 alias 사용시 주의해야 합니다.
+]
+
+.half-right[
+## CircleCI
+- 2.0 버전의 구성 파일에서는 anchor를 위한 job을 정의한 후 이용하는 방법이 있습니다.
+- 2.1 버전에서는 anchor 보다 더욱 편리한 방법으로 설정을 재사용 할 수 있는 orbs, command, parameters, executors 기능이 추가되었습니다.
+
+```yml
+jobs:
+  only_for_anchor:
+    docker: &docker
+      - image: circleci/node:10.17.0
+    steps:
+      - run: echo "Do not run this job" && exit 1
+      - run: &download_binary
+        - name: download binary
+          command: |
+            time aws s3 cp $BINARY_PATH tmp.tar.gz --only-show-errors
+            tar xvf tmp.tar.gz -C ./asset && rm tmp.tar.gz
+  deploy:
+    docker: *docker
+    steps:
+      - checkout
+      - run: *download_binary
+      - run: *serverless_deploy
+      - run: *check_deploy
+```
+]
+]
+
+---
+
+class: gvsc-page
+
+# Authoring Configure
+
+.flexBox[
+.half-left[
+## [GitLabCI](https://docs.gitlab.com/ee/ci/yaml/)
+- [include](https://docs.gitlab.com/ee/ci/yaml/#include) 키워드로 로컬파일,
+  같은 GitLab내 다른 프로젝트의 파일, 원격의 yml 설정 파일을 가져올 수 있습니다.
+- [Example](https://gitlab.com/gitlab-org/gitlab/blob/master/.gitlab-ci.yml)
+- [extends](https://docs.gitlab.com/ee/ci/yaml/#extends) 키워드로 다른 위치의 속성을 가져올 수 있습니다.
+]
+
+.half-right[
+## [CircleCI](https://circleci.com/docs/2.0/configuration-reference/)
+- [fyaml](https://github.com/CircleCI-Public/fyaml) 지원 및 **2.1**버전 부터 CircleCI의 주요 기능인 [orbs](https://circleci.com/docs/2.0/configuration-reference/#orbs-requires-version-21),
+  [command](https://circleci.com/docs/2.0/configuration-reference/#commands-requires-version-21),
+  [parameters](https://circleci.com/docs/2.0/configuration-reference/#parameters-requires-version-21),
+  [executors](https://circleci.com/docs/2.0/configuration-reference/#executors-requires-version-21)
+  를 사용할 수 있습니다.
+
+```yml
+version: 2.1
+orbs:
+    hello: circleci/hello-build@0.0.5
+workflows:
+    HelloWorkflow:
+        jobs:
+          - hello/hello-build
+```
+
+- 하지만 CircleCI Enterprise(on own private infrastructure)에서는 아직 2.1 설정을 지원하지 않습니다.
+  2.1 버전을 2.0 버전 컨피그로 변환 할 수는 있습니다:
+  [`$ circleci config process`](https://circleci.com/docs/2.0/local-cli/#processing-a-config)
+]
+]
+
+- .icon-gitlab[![](./img/logo-gitlab.png)]GitLabCI는 include 속성을 통해, CircleCI는 fyaml 스펙 구현을 통해 하나의 장황한 yml파일을 여러개로 나눌 수 있습니다.
+- GitLabCI는 extends 속성으로, CircleCI는
+orbs, commands, parameters, executors 속성들로 설정을 재사용 할 수 있습니다.
+- .icon-circleci[![](./img/logo-circleci.png)]특히 [Orb Registry](https://circleci.com/orbs/registry/)를 통해 사용자들이 설정을 편리하게 공유할 수 있습니다.
+
+---
+
+class: gvsc-page, scroll, hljs-font-size-12
+
+# Comparison
+
+- Nodejs Serverless 앱을 빌드하고 배포하는 예제입니다.
+- 실제 사용되는 파일을 참고하여 예제로 작성한 부분이라 에러가 있을 수 있습니다.
+
+.flexBox2[
+.child[
+## GitLabCI
+```yml
+image: 550000000022.dkr.ecr.ap-northeast-2.amazonaws.com/ci-build-image:0.6.2
+# ECR의 이미지를 사용하기 위해 gitlab-runner 쪽의 설정도 필요합니다.
+
+stages:
+  - test
+  - build
+  - deploy
+
+before_script:
+  - echo "CLI 툴 체크:"
+
+variables:
+  GIT_STRATEGY: clone
+
+test:
+  stage: test
+  only: [tags,branches]
+  tags: [ecr,noproxy]
+  script:
+    - yarn install
+    - yarn run tsc:server
+    - yarn run tsc:client
+    - yarn run tsc:test
+    - yarn run test
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  artifacts:
+    expire_in: 90 day
+    when: always
+    paths:
+      - lib/
+      - coverage/
+
+.build: &build
+  stage: build
+  tags: [ecr,noproxy]
+  script:
+    - yarn install
+    - export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
+    - echo $GIT_REVISION
+    - sed <mkdocs.yml -e "s,{{version}},$GIT_REVISION,">tmp.mkdocs.yml
+    - time mkdocs build --config-file tmp.mkdocs.yml
+
+    - source $VAR_DEPLOY_ENV.envrc
+    - npx serverless package --package my-artifacts
+  artifacts:
+    expire_in: 90 day
+    paths:
+      - site/
+      - my-artifacts/
+
+.deploy: &deploy
+  stage: deploy
+  tags: [ecr,noproxy]
+  script:
+    - source $VAR_DEPLOY_ENV.envrc
+    - npx serverless deploy --package my-artifacts
+    - aws s3 cp --only-show-errors --recursive site/ s3://example/mkdocs/
+    - VERSION_JSON_RESULT=$(time curl $APIGATEWAY_ENDPOINT/health.json --silent)
+    - SERVER_GIT_REVISION=$(echo $VERSION_JSON_RESULT | jq -r .gitRevision)
+    - if [ "x$SERVER_GIT_REVISION" != "x$GIT_REVISION" ]; then exit 1; fi
+
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+
+deploy_dev_manual:
+  only: [branches]
+  when: manual
+  variables:
+    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_DEV
+    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_DEV
+    VAR_DEPLOY_ENV: dev
+  <<: *build_deploy
+
+deploy_dev:
+  only: [tags]
+  variables:
+    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_DEV
+    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_DEV
+    VAR_DEPLOY_ENV: dev
+  <<: *build_deploy
+
+deploy_stg:
+  only: [tags]
+  variables:
+    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_STG
+    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_STG
+    VAR_DEPLOY_ENV: stg
+  <<: *build_deploy
+
+deploy_prod:
+  only: [tags]
+  when: manual
+  variables:
+    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_PRODEU
+    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_PRODEU
+    VAR_DEPLOY_ENV: prodeu
+  <<: *build_deploy
+```
+]
+.child[
+## CircleCI 2.0
+```yml
+version: 2
+
+jobs:
+  only_for_anchor:
+    docker: &docker
+      - image: 550000000022.dkr.ecr.ap-northeast-2.amazonaws.com/ci-build-image:0.6.2
+        auth:
+          username: $USER_CI_DOCKER_AUTH_USERNAME
+          password: $USER_CI_DOCKER_AUTH_PASSWORD
+        user: root
+    working_directory: ~/repo
+    steps:
+      # only_for_anchor job은 실제 실행되는 job이 아닌,
+      # 가독성 높은 config를 위해 다른 job에서 anchor들을 참조하기 위한 job.
+      - run: exit 1
+      - run: &run_check_commands
+          name: check commands
+          command: echo "CLI 툴 체크:"
+
+      # 각 환경마다 다른 `DEPLOY_ENV` 를 제공해야함
+      - run: &run_prepare_environment
+          name: prepare environment
+          command: |
+              export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
+              echo "export GIT_REVISION=\"$GIT_REVISION\"" >> $BASH_ENV
+              cat $DEPLOY_ENV.envrc >> $ENV_FILE
+
+      - run: &run_serverless_deploy
+          name: serverless deploy
+          environment: *env_proxy
+          command: |
+            source $ENV_FILE
+            ## serverless 배포
+
+      - run: &run_check_health_json
+          name: check /health.json
+          environment: *env_proxy
+          command: |
+            VERSION_JSON_RESULT=$(time curl $APIGATEWAY_ENDPOINT/health.json --silent)
+            SERVER_GIT_REVISION=$(echo $VERSION_JSON_RESULT | jq -r .gitRevision)
+            if [ "x$SERVER_GIT_REVISION" != "x$GIT_REVISION" ]; then exit 1; fi
+
+      - restore_cache: &restore_cache_node_modules
+          name: restore_cache_node_modules
+          keys:
+            - v3-dependencies-{{ checksum "yarn.lock" }}
+      - run: &yarn_install
+          name: yarn install
+          command: |
+              yarn install
+      - save_cache: &save_cache_node_modules
+          name: save_cache_node_modules
+          paths:
+            - node_modules
+          key: v3-dependencies-{{ checksum "yarn.lock" }}
+
+      - run: &typescript_compile
+          name: typescript compile
+          command: |
+              yarn run tsc:server
+              yarn run tsc:client
+              yarn run tsc:test
+
+      - run: &run_upload_static_file_serving_from_cdn
+          name: upload static file(serving from CDN)
+          environment: *env_proxy
+          command: |
+              source $ENV_FILE
+              time aws s3 sync static-s3-sync s3://$MW19_CDN_DOMAIN/example/example2019/
+
+      - store_artifacts: &store_artifacts_after_deploy
+          path: serverless-artifacts
+
+  test:
+    docker: *docker
+    working_directory: ~/repo
+    steps:
+      - run: *run_check_commands
+      - checkout
+      - restore_cache: *restore_cache_node_modules
+      - run: *yarn_install
+      - save_cache: *save_cache_node_modules
+      - restore_cache: *restore_cache
+      - run: *get_BINARY
+      - save_cache: *save_cache
+
+      - run: *typescript_compile
+      - run: yarn run test
+      - run: tar zcvf artifacts.tar.gz lib coverage
+
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: artifacts.tar.gz
+
+  deploy_dev:
+    docker: *docker
+    working_directory: ~/repo
+    environment:
+      ENV_FILE: tmp.env
+      DEPLOY_ENV: dev
+    steps:
+      - checkout
+      - restore_cache: *restore_cache_node_modules
+      - run: yarn install
+      - save_cache: *save_cache_node_modules
+      - restore_cache: *restore_cache
+      - run: *get_BINARY
+      - save_cache: *save_cache
+
+      - run: *run_prepare_environment
+      - run: *run_build_mkdocs
+      - run: *run_build_and_upload_storybook_static
+      - run: *run_serverless_deploy
+      - run: *run_check_version_json
+      - store_artifacts: *store_artifacts_after_deploy
+
+  deploy_stg:
+    docker: *docker
+    working_directory: ~/repo
+    environment:
+      ENV_FILE: tmp.env
+      DEPLOY_ENV: stg
+    steps:
+      - checkout
+      - restore_cache: *restore_cache_node_modules
+      - run: yarn install
+      - save_cache: *save_cache_node_modules
+      - restore_cache: *restore_cache
+      - run: *get_BINARY
+      - save_cache: *save_cache
+
+      - run: *run_prepare_environment
+      - run: *run_upload_static_file_serving_from_cdn
+      - run: *run_serverless_deploy
+      - run: *run_check_version_json
+      - store_artifacts: *store_artifacts_after_deploy
+
+  deploy_prodcn:
+    docker: *docker
+    working_directory: ~/repo
+    environment:
+      ENV_FILE: tmp.env
+      DEPLOY_ENV: prodcn
+    steps:
+      - checkout
+      - restore_cache: *restore_cache_node_modules
+      - run: yarn install
+      - save_cache: *save_cache_node_modules
+      - restore_cache: *restore_cache
+      - run: *get_BINARY
+      - save_cache: *save_cache
+
+      - run: *run_prepare_environment
+      - run: *run_serverless_deploy
+      - run: *run_check_version_json
+      - store_artifacts: *store_artifacts_after_deploy
+
+  deploy_prodeu:
+    docker: *docker
+    working_directory: ~/repo
+    environment:
+      ENV_FILE: tmp.env
+      DEPLOY_ENV: prodeu
+    steps:
+      - checkout
+      - restore_cache: *restore_cache_node_modules
+      - run: yarn install
+      - save_cache: *save_cache_node_modules
+      - restore_cache: *restore_cache
+      - run: *get_BINARY
+      - save_cache: *save_cache
+
+      - run: *run_prepare_environment
+      - run: *run_upload_static_file_serving_from_cdn
+      - run: *run_serverless_deploy
+      - run: *run_check_version_json
+      - store_artifacts: *store_artifacts_after_deploy
+
+workflows:
+  version: 2
+  for-all-commit:
+    jobs:
+      - test:
+          filters: &filters_only_branches
+            branches: { only: /.*/ }
+            tags: { ignore: /.*/ }
+      - approve-deploy-dev:
+          type: approval
+          requires: [test]
+          filters: *filters_only_branches
+      - deploy_dev:
+          requires: [approve-deploy-dev]
+          filters: *filters_only_branches
+
+  tagging:
+    jobs:
+      - test:
+          filters: &filters_only_tags
+            branches: { ignore: /.*/ }
+            tags: { only: /.*/ }
+
+      - deploy_dev:
+          requires: [test]
+          filters: *filters_only_tags
+
+      - deploy_stg:
+          requires: [test]
+          filters: *filters_only_tags
+
+      - approve-deploy-prodcn:
+          type: approval
+          requires: [test]
+          filters: *filters_only_tags
+      - deploy_prodcn:
+          requires: [approve-deploy-prodcn]
+          filters: *filters_only_tags
+
+      - approve-deploy-prodeu:
+          type: approval
+          requires: [test]
+          filters: *filters_only_tags
+      - deploy_prodeu:
+          requires: [approve-deploy-prodeu]
+          filters: *filters_only_tags
+```
+]
+.child[
+## circleci 2.1
+```yml
+version: 2.1
+
+executors:
+  ci-build-image:
+    working_directory: ~/repo
+    docker: &docker
+      - image: docker.rt.ourenterprise.net/ci-build-image:1.0.0
+        auth:
+          username: $USER_CI_DOCKER_AUTH_USERNAME
+          password: $USER_CI_DOCKER_AUTH_PASSWORD
+        user: root
+
+commands:
+  for-anchors:
+    steps:
+      - run:
+          name: serverless deploy
+          environment: &env-proxy-settings
+              http_proxy: http://1.2.3.4:8080/
+              https_proxy: http://1.2.3.4:8080/
+              HTTP_PROXY: http://1.2.3.4:8080/
+              HTTPS_PROXY: http://1.2.3.4:8080/
+          command: exit 1
+
+  command-upload-static-s3-sync:
+    parameters:
+      predefined_env_file: &predefined_env_file
+        description: select predefined env file
+        type: enum
+        enum: [dev.envrc, stg.envrc, prodeu.envrc, prodcn.envrc]
+    steps:
+      - run: &run_upload_static_file_serving_from_cdn
+          name: upload static file(serving from CDN)
+          environment: *env-proxy-settings
+          command: |
+              source << parameters.predefined_env_file >>
+              time aws s3 sync static-s3-sync s3://$MW19_CDN_DOMAIN/example/example2019/
+
+  command-deploy-and-check-serverless:
+    parameters:
+      predefined_env_file: *predefined_env_file
+    steps:
+      - run:
+          name: serverless deploy
+          environment: *env-proxy-settings
+          command: |
+              source << parameters.predefined_env_file >>
+              ## serverless 배포
+      - run:
+          name: check /version.json
+          environment: *env-proxy-settings
+          command: |
+              source << parameters.predefined_env_file >>
+              ## 배포한 서버를 curl로 호출 수 배포가 정상적으로 되었는지 체크
+      - store_artifacts: &store_artifacts_after_deploy
+          path: serverless-artifacts
+
+  command-build-and-upload-storybook:
+    parameters:
+      predefined_env_file: *predefined_env_file
+    steps:
+      - run:
+          name: build and upload storybook static
+          environment: *env-proxy-settings
+          command: |
+              source << parameters.predefined_env_file >>
+              ## storybook build & upload AWS S3
+
+  command-build-mkdocs:
+    parameters:
+      predefined_env_file: *predefined_env_file
+    steps:
+      - run:
+          name: build mkdocs
+          command: time mkdocs build --config-file mkdocs.yml
+
+  command-prepare-environment:
+    steps:
+      - run:
+          name: prepare environment
+          command: |
+              export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
+              echo "export GIT_REVISION=\"$GIT_REVISION\"" >> $BASH_ENV
+
+  load-billing:
+    description: "load billing with cache"
+    steps:
+      - restore_cache:
+          name: restore_cache
+          keys:
+            - v4-billing-{{ checksum "asset/billing-binary-db-info.json" }}
+      - run: &get_BINARY
+          name: get BINARY billing file
+          # https://github.ourenterprise.net/pages/CircleCI/guide/proxy/1_how_to_set_proxy.html
+          environment: *env-proxy-settings
+          command: |
+              cat asset/billing-binary-db-info.json | jq .[0]
+              BINARY_DIR=$(cat asset/billing-binary-db-info.json | jq -r .[0].version)
+              BINARY_S3PATH=$(cat asset/billing-binary-db-info.json | jq -r .[0].s3path)
+              if [ -d "cached_BINARY_dir" ];
+              then
+                cp -r ./cached_BINARY_dir ./asset/$BINARY_DIR
+                echo "cache hit!"
+                exit 0
+              fi
+
+              export AWS_ACCESS_KEY_ID=$USER_CI_ACCESS_KEY_DEV
+              export AWS_SECRET_ACCESS_KEY=$USER_CI_SECRET_KEY_DEV
+              export AWS_DEFAULT_REGION=eu-west-1   # 중국리전 셋팅되어있으면 s3 접근 못함
+
+              time aws s3 cp $BINARY_S3PATH tmp.tar.gz --only-show-errors
+              tar xvf tmp.tar.gz -C ./asset && rm tmp.tar.gz
+              cp -r ./asset/$BINARY_DIR ./cached_BINARY_dir
+      - save_cache:
+          name: save_cache
+          paths:
+            - cached_BINARY_dir
+          key: v4-billing-{{ checksum "asset/billing-binary-db-info.json" }}
+
+  yarn-install:
+    description: "yarn install with cache"
+    steps:
+      - restore_cache:
+          name: restore_cache_node_modules
+          keys:
+            - v3-dependencies-{{ checksum "yarn.lock" }}
+      - run:
+          name: yarn install
+          command: |
+              yarn install
+      - save_cache:
+          name: save_cache_node_modules
+          paths:
+            - node_modules
+          key: v3-dependencies-{{ checksum "yarn.lock" }}
+
+  command-check-cli-command:
+    steps:
+      - run: &run_check_commands
+          name: check commands
+          command: echo "CLI 툴 체크:"
+
+  command-typescript-compile:
+    steps:
+      - run: &typescript_compile
+          name: typescript compile
+          command: |
+              yarn run tsc:server
+              yarn run tsc:client
+              yarn run tsc:test
+
+jobs:
+  test:
+    executor: ci-build-image
+    steps:
+      - run: *run_check_commands
+      - checkout
+      - yarn-install
+      - load-billing
+
+      - run: *typescript_compile
+      - run: yarn run test
+      - run: tar zcvf artifacts.tar.gz lib coverage
+
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: artifacts.tar.gz
+
+  deploy_dev:
+    executor: ci-build-image
+    steps:
+      - checkout
+      - yarn-install
+      - load-billing
+      - command-prepare-environment
+      - command-build-mkdocs: { predefined_env_file: dev.envrc }
+      - command-build-and-upload-storybook: { predefined_env_file: dev.envrc }
+      - command-deploy-and-check-serverless: { predefined_env_file: dev.envrc }
+
+  deploy_stg:
+    executor: ci-build-image
+    steps:
+      - checkout
+      - yarn-install
+      - load-billing
+      - command-prepare-environment
+      - command-upload-static-s3-sync: { predefined_env_file: stg.envrc }
+      - command-deploy-and-check-serverless: { predefined_env_file: stg.envrc }
+
+  deploy_prodcn:
+    executor: ci-build-image
+    steps:
+      - checkout
+      - yarn-install
+      - load-billing
+      - command-prepare-environment
+      - command-deploy-and-check-serverless: { predefined_env_file: prodcn.envrc }
+
+  deploy_prodeu:
+    executor: ci-build-image
+    steps:
+      - checkout
+      - yarn-install
+      - load-billing
+      - command-prepare-environment
+      - command-upload-static-s3-sync: { predefined_env_file: prodeu.envrc }
+      - command-deploy-and-check-serverless: { predefined_env_file: prodeu.envrc }
+
+workflows:
+  version: 2
+  for-all-commit:
+    jobs:
+      - test:
+          filters: &filters_only_branches
+            branches: { only: /.*/ }
+            tags: { ignore: /.*/ }
+      - approve-deploy-dev:
+          type: approval
+          requires: [test]
+          filters: *filters_only_branches
+      - deploy_dev:
+          requires: [approve-deploy-dev]
+          filters: *filters_only_branches
+
+  tagging:
+    jobs:
+      - test:
+          filters: &filters_only_tags
+            branches: { ignore: /.*/ }
+            tags: { only: /.*/ }
+
+      - deploy_dev:
+          requires: [test]
+          filters: *filters_only_tags
+
+      - deploy_stg:
+          requires: [test]
+          filters: *filters_only_tags
+
+      - approve-deploy-prodcn:
+          type: approval
+          requires: [test]
+          filters: *filters_only_tags
+      - deploy_prodcn:
+          requires: [approve-deploy-prodcn]
+          filters: *filters_only_tags
+
+      - approve-deploy-prodeu:
+          type: approval
+          requires: [test]
+          filters: *filters_only_tags
+      - deploy_prodeu:
+          requires: [approve-deploy-prodeu]
+          filters: *filters_only_tags
+```
+]
+]
+
+
+---
+
+class: gvsc-page
+
+# Debugging
+
+.flexBox[
+.half-left[
+## GitLabCI
+- [gitlab-runner의 `exec` 커맨드](https://docs.gitlab.com/runner/commands/#limitations-of-gitlab-runner-exec)로 로컬에서 실행 할 수 있습니다.
+- 11.3 버전에 [Interactive Web Terminals](https://docs.gitlab.com/ee/ci/interactive_web_terminal/) 기능이 추가되었습니다.
+    - shared-runner는 지원하지 않음.
+    - 즉 self-hosted gitlab-runner의 설정이 필요합니다.
+]
+
+.half-right[
+## CircleCI
+- [CLI의 `local` 커맨드](https://circleci.com/docs/2.0/local-cli/#run-a-job-in-a-container-on-your-machine)로 로컬에서 실행 할 수 있습니다.
+- `rerun with ssh` 로 빌드 중인 컨테이너에 접속 할 수 있습니다.
+
+![](./img/rerun-with-ssh-2.png)
+]
+]
+
+- *It Works on My Machine* 문제를 해결하기 위해 다양한 방법들을 지원합니다.
+- .icon-circleci[![](./img/logo-circleci.png)]yml 컨피그 내용을 바로 확인할 수 있는 점, `rerun with ssh` 제공 등 CircleCI에서 좀 더 섬세하고 유용한 기능들을 제공합니다.
+
+---
+
+class: gvsc-page, scroll
+
+# Web UI
+
+.flexBox[
+.half-left[
+## GitLabCI
+- 예쁩니다.
+- script 명령어별로 log fold 나 duration time 표시가 되지 않습니다.
+]
+
+.half-right[
+## CircleCI
+- 예쁘지만 approve type job이 하나의 job으로 존재하는게 어색하고
+- 병렬 실행 job간의 순서가 매번 변경되는 버그가 있습니다.
+- step단위로 log를 볼 수 있고 duration time 표시도 되어 최적화를 하기 좋습니다.
+]
+]
+
+.think[
+- .icon-gitlab[![](./img/logo-gitlab.png)]마지막으로 UI의 비교입니다. 각각의 장단점들이 있었지만 특히 GitLabCI는 GitLab과 일관성있는 UI를 가지고 있어 적응이 더 쉬웠습니다.
+]
+
+---
+
+class: gvsc-page
+
+# Conclusion
+
+- .icon-gitlab[![](./img/logo-gitlab.png)] 8: 다양한 팀 구조에서 다양한 모양의 CI를 구성하기 좋음
+- .icon-circleci[![](./img/logo-circleci.png)] 14: 스크립트 작성, 관리가 편리함
+
+## 솔루션 도입시 고려해야 할 것
+- 사용자 규모와 비용.
+- 사용자들이 필요한 빌드 환경이 무엇인지.
+- 지금 사용하고 있는 툴과의 통합은 잘 되는지, 중복은 없는지.
+- 각 제품의 로드맵을 보면서 앞으로 출시될 기능이 무엇인지.
+- GitLabCI와 CircleCI의 장점들만 채택해서 나온 느낌의 [GitHub Actions](https://help.github.com/en/actions)!!
+    - GitHub-hosted runner, Self-hosted runner
+    - Step
+    - [Orbs registry](https://circleci.com/orbs/registry/) -> [Marketplace](https://github.com/marketplace)
+    - AweSome UI,UX,DX
+
+.footnote[.text[상황에 따른 최선의 결정이 있을 뿐 정답은 없습니다]]
+
+---
+
+class: page-group-reference
+
+### References
+- https://www.youtube.com/watch?v=s8DCpG1PeaU
+- https://about.gitlab.com/company/history/
+- https://about.gitlab.com/releases/
+- https://gitlab.com/gitlab-org/gitlab-foss/blob/master/changelogs/archive.md
+- https://about.gitlab.com/releases/2015/09/22/gitlab-8-0-released/
+- https://ilya.puchka.me/parametrised-jobs-in-circleci/
+- https://about.gitlab.com/devops-tools/circle-ci-vs-gitlab.html
+- https://about.gitlab.com/devops-tools/
+- https://circleci.com/server/changelog/
+- https://circleci.com/docs/2.0/migrating-from-gitlab/
+- https://circleci.com/docs/2.0/circleci-images/
+- https://circleci.com/docs/2.0/configuration-reference/
+- https://circleci.com/blog/build-cicd-piplines-using-docker/
+- https://www.katalon.com/resources-center/blog/ci-cd-tools/
+
+---
+
+class: middle, center
+
+# 🙏 Thank you 🙇
+
+    </textarea>
+    <div id="timerBox">
+      <div id="timer"></div>
+      <div id="start">start</div>
+    </div>
+    <script src="./js/remark-latest.min.js"></script>
+    <script>const hljs = remark.highlighter.engine;</script>
+    <script src="./js/remark.language.js"></script>
+    <script src="./js/user.js"></script>
+  </body>
+</html>
