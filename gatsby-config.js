@@ -2,6 +2,11 @@ require('dotenv').config({
   path: '.env',
 });
 
+const siteMetadata = {
+  title: 'aluc.io',
+  description: "alfreduc's Blog",
+}
+
 const supportedLanguages = require('./src/utils/i18n/supportedLanguages');
 
 const languages = supportedLanguages.map(language => language.languageTag);
@@ -91,5 +96,6 @@ if (process.env.ENABLE_BUNDLE_ANALYZER === '1') {
 }
 
 module.exports = {
+  siteMetadata,
   plugins,
 };

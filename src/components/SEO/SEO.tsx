@@ -19,9 +19,7 @@ const SEO: React.FC<Props> = ({ children, description = '', title }) => {
     <Location>
       {({ location }) => (
         <Helmet
-          htmlAttributes={{
-            lang: intl.locale,
-          }}
+          htmlAttributes={{ lang: intl.locale }}
           title={title}
           titleTemplate="%s | Website"
         >

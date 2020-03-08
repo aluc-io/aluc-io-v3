@@ -1,5 +1,8 @@
 import React, { FC } from "react"
 import { graphql } from "gatsby"
+import { useIntl } from 'gatsby-plugin-intl'
+import { Layout } from '~/components/Layout'
+import { SEO } from '~/components/SEO'
 
 interface Post {
   id: string
@@ -28,10 +31,12 @@ interface PropsPost {
 const PostTemplate: FC<PropsPost> = (props) => {
   const { post } = props.data
   const { html } = post
+  const intl = useIntl()
   return (
-    <div>
+    <Layout>
+      <SEO title={intl.formatMessage({ id: 'homepage.title' })} />
       <div dangerouslySetInnerHTML={{ __html: html }}/>
-    </div>
+    </Layout>
   )
 }
 

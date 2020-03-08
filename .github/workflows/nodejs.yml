@@ -22,6 +22,16 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: build and copy slide
         run: |
+          GITHUB_REF=${{ github.ref }}
+          if [ $GITHUB_REF = "refs/heads/master" ]; then
+            export GATSBY_SITE_URL=https://aluc.io/
+          else
+            # https://stackoverflow.com/a/13210909/5568628
+            # Converting `refs/heads/some-feature-branch` to `refs-heads-some-feature-branch`.
+            # So SITE_URL will be https://refs-heads-some-feature-branch.aluc.io/
+            export GATSBY_SITE_URL=https://${GITHUB_REF//\//-}/
+          fi
+
           yarn build
           cp -r contents/slide public/
       - uses: actions/upload-artifact@master
@@ -45,6 +55,7 @@ jobs:
       - name: upload to s3
         run: |
           ls -al public
+          # TODO: Keep only recent 5 SHAs
           aws s3 cp --recursive --only-show-errors public/ s3://aluc-io-v3/${{ github.sha }}/
           aws s3 rm --recursive --only-show-errors s3://aluc-io-v3/aluc.io/
           aws s3 cp --recursive --only-show-errors s3://aluc-io-v3/${{ github.sha }}/ s3://aluc-io-v3/aluc.io/

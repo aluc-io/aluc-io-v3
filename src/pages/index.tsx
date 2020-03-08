@@ -20,10 +20,11 @@ const Card = styled.div`
 const Index: React.FC<Props> = ({ data }) => {
   const intl = useIntl()
   const PostTitleItemPropsArr = data.allMarkdownRemark.edges.map(o => o.node)
+  const { title, description } = data.site.siteMetadata
   return (
     <Layout>
       <Avatar />
-      <SEO title={intl.formatMessage({ id: 'homepage.title' })} />
+      <SEO title={title} description={description} />
       {PostTitleItemPropsArr.map( props => <PostTitleItem key={props.fields.slug} {...props}/>)}
     </Layout>
   );
@@ -33,6 +34,12 @@ export default Index;
 
 interface Props {
   data: {
+    site: {
+      siteMetadata: {
+        title: string
+        description: string
+      }
+    }
     allMarkdownRemark: {
       edges: {
         node: PostTitleItemProps
@@ -43,6 +50,12 @@ interface Props {
 
 export const pageQuery = graphql`
   query LayoutQuery {
+    site {
+      siteMetadata {
+        title
+        description
+      }
+    }
     allMarkdownRemark(
       filter: {
         fields: { fileRelativePath: { regex: "/posts/.+?/index\\.md/" }}
