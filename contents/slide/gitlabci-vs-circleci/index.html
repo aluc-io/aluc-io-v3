@@ -25,7 +25,7 @@ class: page-10
 ### GitLabCI vs. CircleCI
 
 .logo-wrapper.right.right-bottom.list-unstyled[
-- alfreduc
+- aluc
 - https://aluc.io/
 - Wed Jan 29 2020
 ]
@@ -34,18 +34,17 @@ class: page-10
 
 class: gvsc-page, hljs-font-size-22
 
-# Who am I
+# aluc?
 
 .flexBox[
 .half-left[
 ```yml
-- name:
-    ko: 유 병화
-    en: Alfred UC You
-- job:
+- 닉네임: aluc
+- 닉네임: aluc
+- 하는 일:
     - Cloud Native 앱 설계, 개발, 운영에 관심 많은
     - SW Engineer
-- I like ${ }
+- 선호하는 도구와 방식
     - MacOS > Ubuntu >>> Windows
     - Stateless > Stateful
     - Serverless > Container >>> Others
@@ -63,6 +62,12 @@ class: gvsc-page, hljs-font-size-22
 .half-right-profile[
 .img-box[.img-profile[![](./img/1566283512570-7-2.jpg)]]]
 ]
+
+---
+
+class: youtube
+
+[.img-big-70p-center[![](./img/1280px-YouTube_Logo.svg.png)]](https://www.youtube.com/channel/UCe3BVXxphvaub3pdFMta2pQ)
 
 ---
 
@@ -1067,12 +1072,6 @@ stages:
   - build
   - deploy
 
-before_script:
-  - echo "CLI 툴 체크:"
-
-variables:
-  GIT_STRATEGY: clone
-
 test:
   stage: test
   only: [tags,branches]
@@ -1081,7 +1080,6 @@ test:
     - yarn install
     - yarn run tsc:server
     - yarn run tsc:client
-    - yarn run tsc:test
     - yarn run test
   cache:
     key: ${CI_COMMIT_REF_SLUG}
@@ -1094,75 +1092,79 @@ test:
       - lib/
       - coverage/
 
-.build: &build
+.build:
   stage: build
   tags: [ecr,noproxy]
   script:
     - yarn install
-    - export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
-    - echo $GIT_REVISION
-    - sed <mkdocs.yml -e "s,{{version}},$GIT_REVISION,">tmp.mkdocs.yml
-    - time mkdocs build --config-file tmp.mkdocs.yml
-
-    - source $VAR_DEPLOY_ENV.envrc
     - npx serverless package --package my-artifacts
   artifacts:
     expire_in: 90 day
     paths:
-      - site/
       - my-artifacts/
 
 .deploy: &deploy
   stage: deploy
   tags: [ecr,noproxy]
   script:
-    - source $VAR_DEPLOY_ENV.envrc
+    - >
+      if [ "$DEPLOY_ENV" = "dev" ]; then
+        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_FOR_MKDOCS
+        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_FOR_MKDOCS
+        sed <mkdocs.yml -e "s,{{version}},$GIT_REVISION,">tmp.mkdocs.yml
+        time mkdocs build --config-file tmp.mkdocs.yml
+        time aws s3 cp site s3://bucket-for-mkdocs/mkdocs-static --recursive --only-show-errors
+      fi
+
+    if [ "$DEPLOY_ENV" = "prod" ]; then
+      export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_PROD
+      export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_PROD
+    else
+      export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_DEV
+      export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_DEV
+    fi
     - npx serverless deploy --package my-artifacts
     - aws s3 cp --only-show-errors --recursive site/ s3://example/mkdocs/
     - VERSION_JSON_RESULT=$(time curl $APIGATEWAY_ENDPOINT/health.json --silent)
     - SERVER_GIT_REVISION=$(echo $VERSION_JSON_RESULT | jq -r .gitRevision)
     - if [ "x$SERVER_GIT_REVISION" != "x$GIT_REVISION" ]; then exit 1; fi
-
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
       - node_modules/
+  artifacts:
+    expire_in: 90 day
+    paths:
+      - site/
 
 deploy_dev_manual:
   only: [branches]
   when: manual
   variables:
-    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_DEV
-    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_DEV
-    VAR_DEPLOY_ENV: dev
-  <<: *build_deploy
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_DEV
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_DEV
+    DEPLOY_ENV: dev
+  <<: *build
 
 deploy_dev:
   only: [tags]
   variables:
-    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_DEV
-    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_DEV
-    VAR_DEPLOY_ENV: dev
-  <<: *build_deploy
-
-deploy_stg:
-  only: [tags]
-  variables:
-    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_STG
-    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_STG
-    VAR_DEPLOY_ENV: stg
-  <<: *build_deploy
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_DEV
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_DEV
+    DEPLOY_ENV: dev
+  <<: *build
 
 deploy_prod:
   only: [tags]
   when: manual
   variables:
-    AWS_ACCESS_KEY_ID: $USER_CI_ACCESS_KEY_PRODEU
-    AWS_SECRET_ACCESS_KEY: $USER_CI_SECRET_KEY_PRODEU
-    VAR_DEPLOY_ENV: prodeu
-  <<: *build_deploy
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_PROD
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_PROD
+    DEPLOY_ENV: prod
+  <<: *build
 ```
 ]
+
 .child[
 ## CircleCI 2.0
 ```yml
@@ -1175,191 +1177,145 @@ jobs:
         auth:
           username: $USER_CI_DOCKER_AUTH_USERNAME
           password: $USER_CI_DOCKER_AUTH_PASSWORD
-        user: root
-    working_directory: ~/repo
+
     steps:
       # only_for_anchor job은 실제 실행되는 job이 아닌,
       # 가독성 높은 config를 위해 다른 job에서 anchor들을 참조하기 위한 job.
       - run: exit 1
-      - run: &run_check_commands
-          name: check commands
-          command: echo "CLI 툴 체크:"
 
-      # 각 환경마다 다른 `DEPLOY_ENV` 를 제공해야함
-      - run: &run_prepare_environment
-          name: prepare environment
+      - run: &run_prepare_common_environment
+          name: prepare common environment
           command: |
-              export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
-              echo "export GIT_REVISION=\"$GIT_REVISION\"" >> $BASH_ENV
-              cat $DEPLOY_ENV.envrc >> $ENV_FILE
-
-      - run: &run_serverless_deploy
-          name: serverless deploy
-          environment: *env_proxy
-          command: |
-            source $ENV_FILE
-            ## serverless 배포
-
-      - run: &run_check_health_json
-          name: check /health.json
-          environment: *env_proxy
-          command: |
-            VERSION_JSON_RESULT=$(time curl $APIGATEWAY_ENDPOINT/health.json --silent)
-            SERVER_GIT_REVISION=$(echo $VERSION_JSON_RESULT | jq -r .gitRevision)
-            if [ "x$SERVER_GIT_REVISION" != "x$GIT_REVISION" ]; then exit 1; fi
+            export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
+            echo "export GIT_REVISION=\"$GIT_REVISION\"" >> $BASH_ENV
 
       - restore_cache: &restore_cache_node_modules
-          name: restore_cache_node_modules
+          name: restore cache node_modules
           keys:
             - v3-dependencies-{{ checksum "yarn.lock" }}
-      - run: &yarn_install
-          name: yarn install
-          command: |
-              yarn install
+      - run: &yarn_install yarn install
       - save_cache: &save_cache_node_modules
           name: save_cache_node_modules
           paths:
             - node_modules
           key: v3-dependencies-{{ checksum "yarn.lock" }}
 
-      - run: &typescript_compile
-          name: typescript compile
+      - run: &run_build_and_upload_mkdocs
+          name: build and upload mkdocs
           command: |
-              yarn run tsc:server
-              yarn run tsc:client
-              yarn run tsc:test
+            sed <mkdocs.yml -e "s,{{version}},$GIT_REVISION,">tmp.mkdocs.yml
+            mkdocs build --config-file tmp.mkdocs.yml
+            aws s3 cp site s3://bucket-for-mkdocs/mkdocs-static --recursive --only-show-errors
+      - store_artifacts: &store_artifacts_site
+          path: site
+
+      - run: &run_serverless_package |
+          npx serverless package --package my-artifacts --verbose
+      - persist_to_workspace: &persist_to_workspace_my_artifacts
+          root: .
+          paths:
+            - my-artifacts
+      - store_artifacts: &store_artifacts_my_artifacts
+          path: my-artifacts
+      - attach_workspace: &attach_workspace_my_artifacts
+          at: my-artifacts
+
+      - run: &run_serverless_deploy
+          name: serverless deploy
+          command: |
+            npx serverless deploy --package my-artifacts --verbose
+            VERSION_JSON_RESULT=$(time curl $APIGATEWAY_ENDPOINT/health.json --silent)
+            SERVER_GIT_REVISION=$(echo $VERSION_JSON_RESULT | jq -r .gitRevision)
+            if [ "x$SERVER_GIT_REVISION" != "x$GIT_REVISION" ]; then exit 1; fi
 
       - run: &run_upload_static_file_serving_from_cdn
           name: upload static file(serving from CDN)
-          environment: *env_proxy
           command: |
-              source $ENV_FILE
-              time aws s3 sync static-s3-sync s3://$MW19_CDN_DOMAIN/example/example2019/
-
-      - store_artifacts: &store_artifacts_after_deploy
-          path: serverless-artifacts
+            time aws s3 sync static-s3-sync s3://$BUCKET_CONNECTED_CDN/example/example2019/
 
   test:
     docker: *docker
-    working_directory: ~/repo
     steps:
-      - run: *run_check_commands
       - checkout
       - restore_cache: *restore_cache_node_modules
       - run: *yarn_install
       - save_cache: *save_cache_node_modules
-      - restore_cache: *restore_cache
-      - run: *get_BINARY
-      - save_cache: *save_cache
 
-      - run: *typescript_compile
+      - run: yarn run tsc:server
+      - run: yarn run tsc:client
       - run: yarn run test
-      - run: tar zcvf artifacts.tar.gz lib coverage
 
+      - run: tar zcvf artifacts.tar.gz lib coverage
       - store_test_results:
           path: test-results
       - store_artifacts:
           path: artifacts.tar.gz
 
+  build:
+    docker: *docker
+    steps:
+      - checkout
+      - restore_cache: *restore_cache_node_modules
+      - run: *yarn_install
+      - save_cache: *save_cache_node_modules
+      - run: *run_prepare_common_environment
+
+      - run: *run_serverless_package
+      - store_artifacts: *store_artifacts_my_artifacts
+      - persist_to_workspace: *persist_to_workspace_my_artifacts
+
   deploy_dev:
     docker: *docker
-    working_directory: ~/repo
-    environment:
-      ENV_FILE: tmp.env
-      DEPLOY_ENV: dev
     steps:
       - checkout
       - restore_cache: *restore_cache_node_modules
-      - run: yarn install
+      - run: *yarn_install
       - save_cache: *save_cache_node_modules
-      - restore_cache: *restore_cache
-      - run: *get_BINARY
-      - save_cache: *save_cache
-
-      - run: *run_prepare_environment
-      - run: *run_build_mkdocs
-      - run: *run_build_and_upload_storybook_static
-      - run: *run_serverless_deploy
-      - run: *run_check_version_json
-      - store_artifacts: *store_artifacts_after_deploy
-
-  deploy_stg:
-    docker: *docker
-    working_directory: ~/repo
-    environment:
-      ENV_FILE: tmp.env
-      DEPLOY_ENV: stg
-    steps:
-      - checkout
-      - restore_cache: *restore_cache_node_modules
-      - run: yarn install
-      - save_cache: *save_cache_node_modules
-      - restore_cache: *restore_cache
-      - run: *get_BINARY
-      - save_cache: *save_cache
-
-      - run: *run_prepare_environment
+      - attach_workspace: *attach_workspace_my_artifacts
+      - run: *run_prepare_common_environment
+      - run:
+          name: prepare environment
+          command: |
+            echo "export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_DEV" >> $BASH_ENV
+            echo "export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_DEV" >> $BASH_ENV
+            echo "export BUCKET_CONNECTED_CDN=static-files-dev" >> $BASH_ENV
+      - run: *run_build_and_upload_mkdocs
       - run: *run_upload_static_file_serving_from_cdn
       - run: *run_serverless_deploy
-      - run: *run_check_version_json
-      - store_artifacts: *store_artifacts_after_deploy
+      - store_artifacts: *store_artifacts_site
 
-  deploy_prodcn:
+  deploy_prod:
     docker: *docker
-    working_directory: ~/repo
     environment:
-      ENV_FILE: tmp.env
-      DEPLOY_ENV: prodcn
+      DEPLOY_ENV: prod
     steps:
       - checkout
       - restore_cache: *restore_cache_node_modules
-      - run: yarn install
+      - run: *yarn_install
       - save_cache: *save_cache_node_modules
-      - restore_cache: *restore_cache
-      - run: *get_BINARY
-      - save_cache: *save_cache
-
-      - run: *run_prepare_environment
-      - run: *run_serverless_deploy
-      - run: *run_check_version_json
-      - store_artifacts: *store_artifacts_after_deploy
-
-  deploy_prodeu:
-    docker: *docker
-    working_directory: ~/repo
-    environment:
-      ENV_FILE: tmp.env
-      DEPLOY_ENV: prodeu
-    steps:
-      - checkout
-      - restore_cache: *restore_cache_node_modules
-      - run: yarn install
-      - save_cache: *save_cache_node_modules
-      - restore_cache: *restore_cache
-      - run: *get_BINARY
-      - save_cache: *save_cache
-
-      - run: *run_prepare_environment
+      - attach_workspace: *attach_workspace_my_artifacts
+      - run: *run_prepare_common_environment
+      - run:
+          name: prepare environment
+          command: |
+            echo "export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_DEV" >> $BASH_ENV
+            echo "export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_DEV" >> $BASH_ENV
+            echo "export BUCKET_CONNECTED_CDN=static-files-prod" >> $BASH_ENV
       - run: *run_upload_static_file_serving_from_cdn
       - run: *run_serverless_deploy
-      - run: *run_check_version_json
-      - store_artifacts: *store_artifacts_after_deploy
+      - store_artifacts: *store_artifacts_site
 
 workflows:
   version: 2
-  for-all-commit:
+  commits:
     jobs:
       - test:
           filters: &filters_only_branches
             branches: { only: /.*/ }
             tags: { ignore: /.*/ }
-      - approve-deploy-dev:
-          type: approval
+      - build:
+          filters: *filters_only_branches
           requires: [test]
-          filters: *filters_only_branches
-      - deploy_dev:
-          requires: [approve-deploy-dev]
-          filters: *filters_only_branches
 
   tagging:
     jobs:
@@ -1367,30 +1323,19 @@ workflows:
           filters: &filters_only_tags
             branches: { ignore: /.*/ }
             tags: { only: /.*/ }
-
+      - build:
+          filters: *filters_only_tags
+          requires: [test]
       - deploy_dev:
-          requires: [test]
           filters: *filters_only_tags
-
-      - deploy_stg:
-          requires: [test]
+          requires: [build]
+      - approve-deploy-prod:
           filters: *filters_only_tags
-
-      - approve-deploy-prodcn:
           type: approval
-          requires: [test]
+          requires: [build]
+      - deploy_prod:
           filters: *filters_only_tags
-      - deploy_prodcn:
-          requires: [approve-deploy-prodcn]
-          filters: *filters_only_tags
-
-      - approve-deploy-prodeu:
-          type: approval
-          requires: [test]
-          filters: *filters_only_tags
-      - deploy_prodeu:
-          requires: [approve-deploy-prodeu]
-          filters: *filters_only_tags
+          requires: [approve-deploy-prod]
 ```
 ]
 .child[
@@ -1399,227 +1344,145 @@ workflows:
 version: 2.1
 
 executors:
-  ci-build-image:
-    working_directory: ~/repo
+  executor-ci-build-image:
     docker: &docker
-      - image: docker.rt.ourenterprise.net/ci-build-image:1.0.0
+      - image: 550000000022.dkr.ecr.ap-northeast-2.amazonaws.com/ci-build-image:0.6.2
         auth:
           username: $USER_CI_DOCKER_AUTH_USERNAME
           password: $USER_CI_DOCKER_AUTH_PASSWORD
-        user: root
 
 commands:
-  for-anchors:
-    steps:
-      - run:
-          name: serverless deploy
-          environment: &env-proxy-settings
-              http_proxy: http://1.2.3.4:8080/
-              https_proxy: http://1.2.3.4:8080/
-              HTTP_PROXY: http://1.2.3.4:8080/
-              HTTPS_PROXY: http://1.2.3.4:8080/
-          command: exit 1
-
-  command-upload-static-s3-sync:
-    parameters:
-      predefined_env_file: &predefined_env_file
-        description: select predefined env file
-        type: enum
-        enum: [dev.envrc, stg.envrc, prodeu.envrc, prodcn.envrc]
-    steps:
-      - run: &run_upload_static_file_serving_from_cdn
-          name: upload static file(serving from CDN)
-          environment: *env-proxy-settings
-          command: |
-              source << parameters.predefined_env_file >>
-              time aws s3 sync static-s3-sync s3://$MW19_CDN_DOMAIN/example/example2019/
-
-  command-deploy-and-check-serverless:
-    parameters:
-      predefined_env_file: *predefined_env_file
-    steps:
-      - run:
-          name: serverless deploy
-          environment: *env-proxy-settings
-          command: |
-              source << parameters.predefined_env_file >>
-              ## serverless 배포
-      - run:
-          name: check /version.json
-          environment: *env-proxy-settings
-          command: |
-              source << parameters.predefined_env_file >>
-              ## 배포한 서버를 curl로 호출 수 배포가 정상적으로 되었는지 체크
-      - store_artifacts: &store_artifacts_after_deploy
-          path: serverless-artifacts
-
-  command-build-and-upload-storybook:
-    parameters:
-      predefined_env_file: *predefined_env_file
-    steps:
-      - run:
-          name: build and upload storybook static
-          environment: *env-proxy-settings
-          command: |
-              source << parameters.predefined_env_file >>
-              ## storybook build & upload AWS S3
-
-  command-build-mkdocs:
-    parameters:
-      predefined_env_file: *predefined_env_file
-    steps:
-      - run:
-          name: build mkdocs
-          command: time mkdocs build --config-file mkdocs.yml
-
   command-prepare-environment:
+    parameters:
+      access-key: { type: env_var_name }
+      secret-key: { type: env_var_name }
+      bucket-connected-cdn: { type: string }
     steps:
       - run:
-          name: prepare environment
+          name: prepare variables of common and each environments
           command: |
-              export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
-              echo "export GIT_REVISION=\"$GIT_REVISION\"" >> $BASH_ENV
+            export GIT_REVISION="$(git describe) - $(git rev-parse --short HEAD)"
+            echo "export GIT_REVISION=\"$GIT_REVISION\"" >> $BASH_ENV
+            echo "export AWS_ACCESS_KEY_ID=${<< parameters.access-key >>}" >> $BASH_ENV
+            echo "export AWS_SECRET_ACCESS_KEY=${<< parameters.secret-key >>}" >> $BASH_ENV
+            echo "export BUCKET_CONNECTED_CDN=<< parameters.bucket-connected-cdn >> $BASH_ENV
 
-  load-billing:
-    description: "load billing with cache"
+  command-yarn-install:
+    description: yarn install with cache
     steps:
       - restore_cache:
-          name: restore_cache
-          keys:
-            - v4-billing-{{ checksum "asset/billing-binary-db-info.json" }}
-      - run: &get_BINARY
-          name: get BINARY billing file
-          # https://github.ourenterprise.net/pages/CircleCI/guide/proxy/1_how_to_set_proxy.html
-          environment: *env-proxy-settings
-          command: |
-              cat asset/billing-binary-db-info.json | jq .[0]
-              BINARY_DIR=$(cat asset/billing-binary-db-info.json | jq -r .[0].version)
-              BINARY_S3PATH=$(cat asset/billing-binary-db-info.json | jq -r .[0].s3path)
-              if [ -d "cached_BINARY_dir" ];
-              then
-                cp -r ./cached_BINARY_dir ./asset/$BINARY_DIR
-                echo "cache hit!"
-                exit 0
-              fi
-
-              export AWS_ACCESS_KEY_ID=$USER_CI_ACCESS_KEY_DEV
-              export AWS_SECRET_ACCESS_KEY=$USER_CI_SECRET_KEY_DEV
-              export AWS_DEFAULT_REGION=eu-west-1   # 중국리전 셋팅되어있으면 s3 접근 못함
-
-              time aws s3 cp $BINARY_S3PATH tmp.tar.gz --only-show-errors
-              tar xvf tmp.tar.gz -C ./asset && rm tmp.tar.gz
-              cp -r ./asset/$BINARY_DIR ./cached_BINARY_dir
-      - save_cache:
-          name: save_cache
-          paths:
-            - cached_BINARY_dir
-          key: v4-billing-{{ checksum "asset/billing-binary-db-info.json" }}
-
-  yarn-install:
-    description: "yarn install with cache"
-    steps:
-      - restore_cache:
-          name: restore_cache_node_modules
+          name: restore cache node_modules
           keys:
             - v3-dependencies-{{ checksum "yarn.lock" }}
-      - run:
-          name: yarn install
-          command: |
-              yarn install
+      - run: yarn install
       - save_cache:
-          name: save_cache_node_modules
+          name: save cache node_modules
           paths:
             - node_modules
           key: v3-dependencies-{{ checksum "yarn.lock" }}
 
-  command-check-cli-command:
+  command-build-and-upload-mkdocs:
     steps:
-      - run: &run_check_commands
-          name: check commands
-          command: echo "CLI 툴 체크:"
-
-  command-typescript-compile:
-    steps:
-      - run: &typescript_compile
-          name: typescript compile
+      - run:
+          name: build mkdocs
           command: |
-              yarn run tsc:server
-              yarn run tsc:client
-              yarn run tsc:test
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_FOR_MKDOCS
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_FOR_MKDOCS
+            sed <mkdocs.yml -e "s,{{version}},$GIT_REVISION,">tmp.mkdocs.yml
+            mkdocs build --config-file tmp.mkdocs.yml
+            aws s3 cp site s3://bucket-for-mkdocs/mkdocs-static --recursive --only-show-errors
+      - store_artifacts:
+          path: site
+
+  command-serverless-package:
+    steps:
+      - run: npx serverless package --package my-artifacts --verbose
+      - persist_to_workspace:
+          root: .
+          paths:
+            - my-artifacts
+      - store_artifacts:
+          path: my-artifacts
+
+  command-deploy-and-check-serverless:
+    steps:
+      - run:
+          name: serverless deploy
+          command: |
+            npx serverless deploy --package my-artifacts --verbose
+            VERSION_JSON_RESULT=$(time curl $APIGATEWAY_ENDPOINT/health.json --silent)
+            SERVER_GIT_REVISION=$(echo $VERSION_JSON_RESULT | jq -r .gitRevision)
+            if [ "x$SERVER_GIT_REVISION" != "x$GIT_REVISION" ]; then exit 1; fi
+
+  command-upload-static-s3-sync:
+    steps:
+      - run:
+          name: upload static file(serving from CDN)
+          command: |
+            time aws s3 sync static-s3-sync s3://$BUCKET_CONNECTED_CDN/example/example2019/
 
 jobs:
   test:
     executor: ci-build-image
     steps:
-      - run: *run_check_commands
       - checkout
-      - yarn-install
-      - load-billing
+      - command-yarn-install
 
-      - run: *typescript_compile
+      - run: yarn run tsc:server
+      - run: yarn run tsc:client
       - run: yarn run test
-      - run: tar zcvf artifacts.tar.gz lib coverage
 
+      - run: tar zcvf artifacts.tar.gz lib coverage
       - store_test_results:
           path: test-results
       - store_artifacts:
           path: artifacts.tar.gz
 
+  build:
+    executor: ci-build-image
+    steps:
+      - checkout
+      - command-yarn-install
+      - command-serverless-package
+
   deploy_dev:
     executor: ci-build-image
     steps:
       - checkout
-      - yarn-install
-      - load-billing
-      - command-prepare-environment
-      - command-build-mkdocs: { predefined_env_file: dev.envrc }
-      - command-build-and-upload-storybook: { predefined_env_file: dev.envrc }
-      - command-deploy-and-check-serverless: { predefined_env_file: dev.envrc }
+      - command-yarn-install
+      - attach_workspace: { at: my-artifacts }
+      - command-prepare-environment:
+          access-key: AWS_ACCESS_KEY_ID_DEV
+          secret-key: AWS_SECRET_ACCESS_KEY_DEV
+          bucket-connected-cdn: static-files-dev
+      - command-build-and-upload-mkdocs
+      - command-upload-static-s3-sync
+      - command-deploy-and-check-serverless
 
-  deploy_stg:
+  deploy_prod:
     executor: ci-build-image
     steps:
       - checkout
-      - yarn-install
-      - load-billing
-      - command-prepare-environment
-      - command-upload-static-s3-sync: { predefined_env_file: stg.envrc }
-      - command-deploy-and-check-serverless: { predefined_env_file: stg.envrc }
-
-  deploy_prodcn:
-    executor: ci-build-image
-    steps:
-      - checkout
-      - yarn-install
-      - load-billing
-      - command-prepare-environment
-      - command-deploy-and-check-serverless: { predefined_env_file: prodcn.envrc }
-
-  deploy_prodeu:
-    executor: ci-build-image
-    steps:
-      - checkout
-      - yarn-install
-      - load-billing
-      - command-prepare-environment
-      - command-upload-static-s3-sync: { predefined_env_file: prodeu.envrc }
-      - command-deploy-and-check-serverless: { predefined_env_file: prodeu.envrc }
+      - command-yarn-install
+      - attach_workspace: { at: my-artifacts }
+      - command-prepare-environment:
+          access-key: AWS_ACCESS_KEY_ID_PROD
+          secret-key: AWS_SECRET_ACCESS_KEY_PROD
+          bucket-connected-cdn: static-files-prod
+      - command-upload-static-s3-sync
+      - command-deploy-and-check-serverless
 
 workflows:
   version: 2
-  for-all-commit:
+  commits:
     jobs:
       - test:
           filters: &filters_only_branches
             branches: { only: /.*/ }
             tags: { ignore: /.*/ }
-      - approve-deploy-dev:
-          type: approval
+      - build:
+          filters: *filters_only_branches
           requires: [test]
-          filters: *filters_only_branches
-      - deploy_dev:
-          requires: [approve-deploy-dev]
-          filters: *filters_only_branches
 
   tagging:
     jobs:
@@ -1627,30 +1490,19 @@ workflows:
           filters: &filters_only_tags
             branches: { ignore: /.*/ }
             tags: { only: /.*/ }
-
+      - build:
+          filters: *filters_only_tags
+          requires: [test]
       - deploy_dev:
-          requires: [test]
           filters: *filters_only_tags
-
-      - deploy_stg:
-          requires: [test]
+          requires: [build]
+      - approve-deploy-prod:
           filters: *filters_only_tags
-
-      - approve-deploy-prodcn:
           type: approval
-          requires: [test]
+          requires: [build]
+      - deploy_prod:
           filters: *filters_only_tags
-      - deploy_prodcn:
-          requires: [approve-deploy-prodcn]
-          filters: *filters_only_tags
-
-      - approve-deploy-prodeu:
-          type: approval
-          requires: [test]
-          filters: *filters_only_tags
-      - deploy_prodeu:
-          requires: [approve-deploy-prodeu]
-          filters: *filters_only_tags
+          requires: [approve-deploy-prod]
 ```
 ]
 ]
@@ -1714,17 +1566,19 @@ class: gvsc-page
 
 # Conclusion
 
-- .icon-gitlab[![](./img/logo-gitlab.png)] 8: 다양한 팀 구조에서 다양한 모양의 CI를 구성하기 좋음
-- .icon-circleci[![](./img/logo-circleci.png)] 14: 스크립트 작성, 관리가 편리함
+- .icon-gitlab[![](./img/logo-gitlab.png)] 엔터프라이즈 기업에 더 적합한 느낌. 여러 조직간 다양한 협업 구조에 맞는 CI 구조를 구성하기 편리함.
+    - 예: Multi project pipeline으로 연관 모듈 빌드 트리거, configure 파일을 운영팀 Repo에서 따로 관리 등
+- .icon-circleci[![](./img/logo-circleci.png)] 스크립트 작성, 관리가 편리함.
+- 그러나 GitLabCI, CircleCI 모두 범용적으로 많이 사용되는 툴인 만큼 대부분의 유즈 케이스를 커버 할 수 있음.
 
 ## 솔루션 도입시 고려해야 할 것
 - 사용자 규모와 비용.
 - 사용자들이 필요한 빌드 환경이 무엇인지.
 - 지금 사용하고 있는 툴과의 통합은 잘 되는지, 중복은 없는지.
 - 각 제품의 로드맵을 보면서 앞으로 출시될 기능이 무엇인지.
-- GitLabCI와 CircleCI의 장점들만 채택해서 나온 느낌의 [GitHub Actions](https://help.github.com/en/actions)!!
+- 그 외 제품? GitLabCI와 CircleCI의 장점들만 채택해서 나온 느낌의 [GitHub Actions](https://help.github.com/en/actions)!!
     - GitHub-hosted runner, Self-hosted runner
-    - Step
+    - Steps
     - [Orbs registry](https://circleci.com/orbs/registry/) -> [Marketplace](https://github.com/marketplace)
     - AweSome UI,UX,DX
 
