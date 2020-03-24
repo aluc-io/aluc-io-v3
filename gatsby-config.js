@@ -36,6 +36,8 @@ const plugins = [
   {
     resolve: `gatsby-transformer-remark`,
     options: {
+      commonmark: true,
+      gfm: true,
       plugins: [
         {
           resolve: `gatsby-remark-images`,
@@ -49,7 +51,16 @@ const plugins = [
             wrapperStyle: `margin-bottom: 1.0725rem`,
           },
         },
-        `gatsby-remark-prismjs`,
+        {
+          resolve: `gatsby-remark-prismjs`,
+          options: {
+            classPrefix: "language-",
+            inlineCodeMarker: null,
+            aliases: {},
+            showLineNumbers: true,
+            noInlineHighlight: false,
+          },
+        },
         `gatsby-remark-copy-linked-files`,
         `gatsby-remark-smartypants`,
       ],

@@ -1,6 +1,8 @@
 import React, { FC } from "react"
 import { graphql } from "gatsby"
 import { useIntl } from 'gatsby-plugin-intl'
+import { css } from '@emotion/core'
+import ReactMarkdown from 'react-markdown'
 import { Layout } from '~/components/Layout'
 import { SEO } from '~/components/SEO'
 
@@ -28,14 +30,32 @@ interface PropsPost {
   }
 }
 
+const cssBox = css`
+  max-width: 800px;
+  padding: 10px;
+  margin: auto;
+  word-break: keep-all;
+`
+
+const cssTitle = css`
+  color: black;
+  font-size: 40px;
+  font-weight: 700;
+`
+
 const PostTemplate: FC<PropsPost> = (props) => {
   const { post } = props.data
   const { html } = post
+  const { title } = props.data.post.frontmatter
+
   const intl = useIntl()
   return (
     <Layout>
       <SEO title={intl.formatMessage({ id: 'homepage.title' })} />
-      <div dangerouslySetInnerHTML={{ __html: html }}/>
+      <div css={cssBox}>
+        <h1 css={cssTitle}>{title}</h1>
+        <div dangerouslySetInnerHTML={{ __html: html }}/>
+      </div>
     </Layout>
   )
 }
