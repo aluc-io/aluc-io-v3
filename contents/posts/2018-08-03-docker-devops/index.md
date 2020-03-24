@@ -21,6 +21,6 @@ DevOps 로 어떤점이 개선되는지 구체적인 설명을 하기 위해 전
   ~~카피~~ 참고 했습니다. 허락 감사합니다.
 
 [subicura]: https://subicura.com/
-[slide]: https://aluc.io/slide/docker-devops/
+[slide]: https://aluc.io/slide/docker-devops/index.html
 [remarkjs]: https://remarkjs.com/
 [kube_slide]: https://subicura.com/remark/kubernetes-intro.html

@@ -51,7 +51,7 @@ query {
 
   return (
     <div css={styleMain}>
-      <Link to='/about-me'>
+      <Link to='/about-me.html'>
         <Img fluid={data.image.childImageSharp.fluid}/>
       </Link>
     </div>

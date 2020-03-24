@@ -91,7 +91,7 @@ exports.createPages = async ({ graphql, actions }) => {
     const next = index === 0 ? null : posts[index - 1].node;
     const { slug } = post.node.fields;
     createPage({
-      path: slug,
+      path: `${slug}`,
       component: blogPost,
       context: { slug, previous, next },
     });
@@ -104,7 +104,7 @@ exports.onCreateNode = ({ node, actions, getNode }) => {
   const { createNodeField } = actions;
   const contentsPath = path.resolve('./contents');
   const fileRelativePath = path.relative(contentsPath, node.fileAbsolutePath);
-  const slug = `/` + path.dirname(fileRelativePath);
+  const slug = `/${path.dirname(fileRelativePath)}`
 
   const isPost = /^posts\//.test(fileRelativePath);
   const isIndexMd = /index\.md$/.test(fileRelativePath);
@@ -112,12 +112,8 @@ exports.onCreateNode = ({ node, actions, getNode }) => {
 
   createNodeField({ node, name: `fileRelativePath`, value: fileRelativePath });
 
-  const relativeFilePath = createFilePath({
-    node,
-    getNode,
-    trailingSlash: false,
-  });
-  createNodeField({ node, name: `slug`, value: relativeFilePath });
+  const relativeFilePath = createFilePath({ node, getNode, trailingSlash: false });
+  createNodeField({ node, name: `slug`, value: `${relativeFilePath}.html` });
 
   const prefix = path.basename(slug).split('-').slice(0, 3);
   createNodeField({ node, name: `prefix`, value: prefix });
