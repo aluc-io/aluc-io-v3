@@ -155,9 +155,7 @@ class: gvsc-page
 ]
 
 .think[
-- GitLbCI와 CircleCI를 소개합니다. 앞으로의 슬라이드에서,
-- .icon-gitlab[![](./img/logo-gitlab.png)] <- 이 아이콘은 제가 생각하는 GitLabCI의 장점이며,
-- .icon-circleci[![](./img/logo-circleci.png)] <- 이 아이콘은 제가 생각하는 CircleCI의 장점입니다.
+- GitLbCI와 CircleCI를 소개합니다.
 - 기술적 선호에 따른 개인적인 의견일 뿐 두 기술의 우열을 따지고자 하는 것은 아니니 참고로만 봐주시기 바랍니다.
 - 우하단 페이지 표시 옆에 ⬇️ 아이콘이 있으면 스크롤을 하여 추가 내용을 볼 수 있습니다.
 ]
@@ -179,7 +177,7 @@ class: gvsc-page
 
 .think-relative[
 - GitLabCI는 polling 방식, CircleCI는 webhook 방식으로 동작합니다.
-- .icon-gitlab[![](./img/logo-gitlab.png)]Polling 방식 덕분에 실제 빌드가 수행되는 환경인 gitlab-runner를 어디서든 쉽게 구동 시킬 수 있습니다.
+- Polling 방식 덕분에 실제 빌드가 수행되는 환경인 gitlab-runner를 어디서든 쉽게 구동 시킬 수 있습니다.
 ]
 
 ---
@@ -208,9 +206,9 @@ class: gvsc-page, scroll
 .think[
 - GitLabCI는 Self-hosted 빌드서버(gitlab-runner) 사용이 가능하지만 CircleCI는 SaaS형태로만 제공됩니다.
 - 슬라이드에서는 서버 개발자로서 GitLabCI Self-hosted runner 사용 경험을 기준으로 비교합니다.
-- .icon-gitlab[![](./img/logo-gitlab.png)]Self-hosted 머신 사용은 커스터마이징이 가능하여 뭐든지 할 수 있지만,
-- .icon-circleci[![](./img/logo-circleci.png)]빌드 환경 운영팀이 아닌 일반 개발자(사용자)가 gitlab-runner를 체계적으로 잘 관리해보고 싶은 유혹에 빠질 수 있습니다.
-- .icon-circleci[![](./img/logo-circleci.png)]GitLabCI 구성 파일에 `tags` 프로퍼티를 사용하여 러너를 선택 하는데, 사용자가 gitlab-runner의 구성까지 알아야합니다.
+- Self-hosted 머신 사용은 커스터마이징이 가능하여 뭐든지 할 수 있지만,
+- 빌드 환경 운영팀이 아닌 일반 개발자(사용자)가 gitlab-runner를 체계적으로 잘 관리해보고 싶은 유혹에 빠질 수 있습니다.
+- GitLabCI은 아래 이미지와 같이 `tags` 속성으로 러너를 선택 하는데, 사용자가 gitlab-runner의 구성까지 알아야한다는 의미입니다.
 ]
 .space-height-400[]
 .img-big[![](./img/gitlab-ci-tags.png)]
@@ -245,7 +243,7 @@ class: gvsc-page
 
 .think[
 - 공통적으로 docker, shell(machine) executor를 지원하지만,
-- .icon-gitlab[![](./img/logo-gitlab.png)]GitLabCI가 FreeBSD, Kubernetes, Custom executor 등 더 많은 환경을 지원합니다.
+- GitLabCI가 FreeBSD, Kubernetes, Custom executor 등 더 많은 환경을 지원합니다.
 ]
 
 ---
@@ -271,7 +269,7 @@ class: gvsc-page
 
 .think[
 - 모두 yml 구성 파일을 사용하며, GitLabCI는 셋팅을 통해 로컬파일, 같은 GitLab내 다른 저장소의 파일, 원격의 yml 파일을 사용 할 수 있는데,
-- .icon-gitlab[![](./img/logo-gitlab.png)] 예를들어 개발의 롤과 **릴리스 엔지니어링**의 롤이 서로 다른 팀에게 부여되는 엔터프라이즈 환경에서 유용한 기능입니다.
+-  예를들어 개발의 롤과 **릴리스 엔지니어링**의 롤이 서로 다른 팀에게 부여되는 엔터프라이즈 환경에서 유용한 기능입니다.
 ]
 
 
@@ -372,7 +370,7 @@ jobs:
 
 .think[
 - 빌드의 실행 단위는 모두 job 이라는 용어를 사용합니다.
-- .icon-circleci[![](./img/logo-circleci.png)]CircleCI에서는 사용할 도커 이미지와 버전을 명시해야하고, 저장소의 형상을 가져오는 것도 `checkout` step으로 명시해야 합니다.
+- CircleCI에서는 사용할 도커 이미지와 버전을 명시해야하고, 저장소의 형상을 가져오는 것도 `checkout` step으로 명시해야 합니다.
 - 반면 GitLab은 **기본동작**으로 저장소의 형상을 가져오고, 도커 이미지를 명시하지 않아도 default 이미지를 사용합니다.
 ]
 
@@ -460,7 +458,7 @@ docker:
 ]
 
 .think[
-- .icon-circleci[![](./img/logo-circleci.png)]CircleCI는 컨피그 파일에 auth 정보만 추가하면 **private registry**에 있는 도커 이미지를 사용할 수 있습니다.
+- CircleCI는 컨피그 파일에 auth 정보만 추가하면 **private registry**에 있는 도커 이미지를 사용할 수 있습니다.
 - ID/Password 방식과 AWS Credential을 통한 AWS ECR(Elastic Container Registry)을 지원합니다.
 ]
 
@@ -540,8 +538,8 @@ workflows:
 ]
 
 - GitLabCI는 **job 구성 안에 이 job이 어떤 stage에 속하는지 명시**하므로 파이프라인 전체 모양을 알기 위해선 모든 job들을 확인해야하고,
-- .icon-circleci[![](./img/logo-circleci.png)]CircleCI는 workflow(pipeline)가 어떤 job들로 구성되는지 별도로 정의하기 때문에 한눈에 전체 모양을 파악하기 좋습니다.
-- .icon-circleci[![](./img/logo-circleci.png)]또한 여러개의 workflow를 정의 할 수 있습니다.
+- CircleCI는 workflow(pipeline)가 어떤 job들로 구성되는지 별도로 정의하기 때문에 한눈에 전체 모양을 파악하기 좋습니다.
+- 또한 여러개의 workflow를 정의 할 수 있습니다.
 
 ---
 
@@ -598,7 +596,7 @@ steps:
 
 .think[
 - GitLabCI에서는 `cache` 키워드를 추가해서 job 실행 시작과 끝에 캐시를 로드하고 저장합니다. 이 기본 동작을 컨트롤 할 수 없습니다.
-- .icon-circleci[![](./img/logo-circleci.png)]CircleCI에서는 `restore_cache`, `save_cache`를 언제든 사용 할 수 있고, 캐시 키를 생성할 때 파일의 `checksum` 값을 사용할 수 있습니다.
+- CircleCI에서는 `restore_cache`, `save_cache`를 언제든 사용 할 수 있고, 캐시 키를 생성할 때 파일의 `checksum` 값을 사용할 수 있습니다.
 ]
 
 ---
@@ -662,9 +660,9 @@ steps:
 ]
 
 - GitLabCI에서는 `artifacts` 설정을 추가하면 job실행 종료 전 조건에 만족할 경우 업로드 합니다.
-- .icon-circleci[![](./img/logo-circleci.png)]GitLabCI에서는 사용자가 보관 기일을 명시하지만 CircleCI에서는 admin이 관리합니다.
+- GitLabCI에서는 사용자가 보관 기일을 명시하지만 CircleCI에서는 admin이 관리합니다.
 - GitLabCI에서는 다음 job으로 데이터를 전달할 때도 artifacts를 사용합니다.
-- .icon-circleci[![](./img/logo-circleci.png)]CircleCI에서는 store_artifacts를 원할 때 사용 할 수 있습니다.
+- CircleCI에서는 store_artifacts를 원할 때 사용 할 수 있습니다.
 - TIP: CircleCI에서는 artifact 업로드시 각각의 파일 그대로 업로드 하기 때문에 파일이 많을 경우 tar 혹은 zip 후 올리는게 빠릅니다.
 
 ---
@@ -728,7 +726,7 @@ test:linux:
 
 ]
 
-- .icon-circleci[![](./img/logo-circleci.png)]여러 job간의 데이터 공유 부분도 GitLabCI는 기본동작에 의해 암묵적으로 수행되는 부분이 있습니다. **왜 이게 되지?** vs **왜 이게 안되지?**
+- 여러 job간의 데이터 공유 부분도 GitLabCI는 기본동작에 의해 암묵적으로 수행되는 부분이 있습니다. **왜 이게 되지?** vs **왜 이게 안되지?**
 
 ---
 
@@ -754,7 +752,7 @@ class: gvsc-page
 ]
 ]
 
-- .icon-gitlab[![](./img/logo-gitlab.png)]CircleCI에서 coverage % 뱃지를 사용하기 위해서는 https://coveralls.io/ 같은 별도의 SaaS를 사용해야합니다.
+- CircleCI에서 coverage % 뱃지를 사용하기 위해서는 https://coveralls.io/ 같은 별도의 SaaS를 사용해야합니다.
 
 ---
 
@@ -782,7 +780,7 @@ class: gvsc-page
 
 .think[
 - 다중 프로젝트 파이프 라인은 프로젝트 간 상호 종속성이 필요한 제품을 개발할 때 유용합니다.
-- .icon-gitlab[![](./img/logo-gitlab.png)]GitLabCI에서는 컨피그 파일 수정만으로 편리하게 다중 프로젝트 파이프라인을 구성할 수 있고 Pipeline UI도 제공됩니다.
+- GitLabCI에서는 컨피그 파일 수정만으로 편리하게 다중 프로젝트 파이프라인을 구성할 수 있고 Pipeline UI도 제공됩니다.
 ]
 
 ---
@@ -822,7 +820,7 @@ class: gvsc-page, scroll
 
 - 두 솔루션 모두 Build시 참조할 수 있는 환경변수들을 제공합니다.
 - GitLabCI에서는 Group-level Variables, CircleCI에서는 Context로 여러 프로젝트에서 사용할 수 있는 환경변수를 셋팅 할 수 있습니다.
-- .icon-circleci[![](./img/logo-circleci.png)]CircleCI는 `Built-in` 환경변수와 Build Setting에서 유저가 제공한 환경변수를 `Spin up Environment` step에서 로그로 보여줍니다.
+- CircleCI는 `Built-in` 환경변수와 Build Setting에서 유저가 제공한 환경변수를 `Spin up Environment` step에서 로그로 보여줍니다.
   (유저가 제공한 환경변수는 기본적으로 Masking 처리됨)
 
 .img-big[![](./img/spin-up-environment.png)]
@@ -883,7 +881,7 @@ class: gvsc-page, scroll
 
 - GitLabCI에서의 환경변수는 script 실행 내내 공유되지만,
 - CircleCI에서는 매 step이 새로운 쉘 실행 환경이므로 step간 환경변수 공유가 되지 않습니다. 공유를 위해 [BASH_ENV](https://circleci.com/docs/2.0/env-vars/#using-bash_env-to-set-environment-variables)를 사용합니다.
-- .icon-circleci[![](./img/logo-circleci.png)]처음엔 GitLab방식이 편리했으나 스크립트가 복잡해지고 블록화 됨에 따라 CircleCI의 방식이 사이드 이펙 없고 더 좋았습니다.
+- 처음엔 GitLab방식이 편리했으나 스크립트가 복잡해지고 블록화 됨에 따라 CircleCI의 방식이 사이드 이펙 없고 더 좋았습니다.
 - 아래는 환경변수로 두개의 AWS Credential을 셋팅하여 사용하는 예시입니다.
 
 .flexBox[
@@ -1046,10 +1044,10 @@ workflows:
 ]
 ]
 
-- .icon-gitlab[![](./img/logo-gitlab.png)]GitLabCI는 include 속성을 통해, CircleCI는 fyaml 스펙 구현을 통해 하나의 장황한 yml파일을 여러개로 나눌 수 있습니다.
+- GitLabCI는 include 속성을 통해, CircleCI는 fyaml 스펙 구현을 통해 하나의 장황한 yml파일을 여러개로 나눌 수 있습니다.
 - GitLabCI는 extends 속성으로, CircleCI는
 orbs, commands, parameters, executors 속성들로 설정을 재사용 할 수 있습니다.
-- .icon-circleci[![](./img/logo-circleci.png)]특히 [Orb Registry](https://circleci.com/orbs/registry/)를 통해 사용자들이 설정을 편리하게 공유할 수 있습니다.
+- 특히 [Orb Registry](https://circleci.com/orbs/registry/)를 통해 사용자들이 설정을 편리하게 공유할 수 있습니다.
 
 ---
 
@@ -1533,7 +1531,7 @@ class: gvsc-page
 ]
 
 - *It Works on My Machine* 문제를 해결하기 위해 다양한 방법들을 지원합니다.
-- .icon-circleci[![](./img/logo-circleci.png)]yml 컨피그 내용을 바로 확인할 수 있는 점, `rerun with ssh` 제공 등 CircleCI에서 좀 더 섬세하고 유용한 기능들을 제공합니다.
+- yml 컨피그 내용을 바로 확인할 수 있는 점, `rerun with ssh` 제공 등 CircleCI에서 좀 더 섬세하고 유용한 기능들을 제공합니다.
 
 ---
 
@@ -1557,7 +1555,7 @@ class: gvsc-page, scroll
 ]
 
 .think[
-- .icon-gitlab[![](./img/logo-gitlab.png)]마지막으로 UI의 비교입니다. 각각의 장단점들이 있었지만 특히 GitLabCI는 GitLab과 일관성있는 UI를 가지고 있어 적응이 더 쉬웠습니다.
+- 마지막으로 UI의 비교입니다. 각각의 장단점들이 있었지만 특히 GitLabCI는 GitLab과 일관성있는 UI를 가지고 있어 적응이 더 쉬웠습니다.
 ]
 
 ---
@@ -1566,9 +1564,9 @@ class: gvsc-page
 
 # Conclusion
 
-- .icon-gitlab[![](./img/logo-gitlab.png)] 엔터프라이즈 기업에 더 적합한 느낌. 여러 조직간 다양한 협업 구조에 맞는 CI 구조를 구성하기 편리함.
+-  엔터프라이즈 기업에 더 적합한 느낌. 여러 조직간 다양한 협업 구조에 맞는 CI 구조를 구성하기 편리함.
     - 예: Multi project pipeline으로 연관 모듈 빌드 트리거, configure 파일을 운영팀 Repo에서 따로 관리 등
-- .icon-circleci[![](./img/logo-circleci.png)] 스크립트 작성, 관리가 편리함.
+-  스크립트 작성, 관리가 편리함.
 - 그러나 GitLabCI, CircleCI 모두 범용적으로 많이 사용되는 툴인 만큼 대부분의 유즈 케이스를 커버 할 수 있음.
 
 ## 솔루션 도입시 고려해야 할 것
